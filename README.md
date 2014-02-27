@@ -64,7 +64,7 @@ SECRET_KEY = 'my secret key'
 Generic signal interface to `flask.signals`. Functions mainly as a named signal factory but can also handle string signals. Has no configuration options.
 
 ```python
-from glasker import signaler
+from carafe import signaler
 
 # using named signals
 signaler.my_signal.send(**kargs)
@@ -80,7 +80,7 @@ signaler.connect('my_signal', handler, **kargs)
 Extends `flask-cache` to provide `cache.cached_view()` decorator which supports cache invalidation via key prefix modification cascades.
 
 ```python
-from glasker import cache, signaler
+from carafe import cache, signaler
 from flask.ext.classy import FlaskView
 
 class MyView(FlaskView):
@@ -148,14 +148,15 @@ Uses `flask-principal` for managing/generating permission based access.
 Requires an Identity Provider class instance which exposes identity information. An example `AuthProvider` is defined in `ext.auth.SQLAlchemyAuthProvider`.
 
 ```python
-from glasker import create_app, auth
-from glasker.ext.auth import SQLAlchemyAuthProvider
+from carafe import create_app, auth
+from carafe.ext.auth import SQLAlchemyAuthProvider
 
 # use flask-sqlalchemy for demo purposes
 from flask.ext.sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 from models import User
+
 MyAuthProvider(SQLAlchemyAuthProvider):
     __model__ = User
 
@@ -179,6 +180,7 @@ app = create_app(__name__, options={'auth': {'provider': provider}})
 def login():
     if valid:
         # default is for `auth` to look for `session['user_id']` to signify successful login
+        # so be sure to set it on successful login
         session['user_id'] = request.form['user_id']
     return ''
 
@@ -238,7 +240,7 @@ CARAFE_AUTH_IDENTITY_ROLES_KEY = 'roles'
 
 ### Logger
 
-Attaches additional loggers to `app.logger`. Provides proxy to `app.logger` via `glasker.logger`.
+Attaches additional loggers to `app.logger`. Provides proxy to `app.logger` via `carafe.logger`.
 
 ### Configuration
 
