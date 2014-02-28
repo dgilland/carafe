@@ -2,7 +2,6 @@
 import json as _json
 
 from werkzeug.exceptions import BadRequest
-import mock
 
 from carafe.ext import json
 from .base import TestBase
