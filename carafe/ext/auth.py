@@ -4,6 +4,7 @@ from flask import session, current_app
 from flask.ext.principal import (
     Principal,
     identity_loaded,
+    identity_changed,
     Identity,
     Permission,
     UserNeed,
@@ -120,6 +121,22 @@ class Auth(object):
         # provide roles
         for role in ident.get(self.identity_roles_key, []):
             identity.provides.add(RoleNeed(role))
+
+    def send_identity_changed(self, user_id):
+        identity_changed.send(current_app._get_current_object(), identity=Identity(user_id))
+
+    def login(self, user_id):
+        # set session user id
+        session[self.session_id_key] = user_id
+
+        # notify of identity change
+        self.send_identity_changed(user_id)
+
+    def logout(self):
+        user_id = session.get(self.session_id_key)
+        if user_id:
+            del session[self.session_id_key]
+            self.send_identity_changed(user_id)
 
 class PermissionFactory(object):
     def __init__(self):

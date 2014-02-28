@@ -51,13 +51,12 @@ class TestAuthBase(TestBase):
         # create session routes
         @self.app.route('/session', methods=['POST'])
         def session_post():
-            session['user_id'] = request.get_dict()['user_id']
+            auth.login(request.get_dict()['user_id'])
             return ''
 
         @self.app.route('/session', methods=['DELETE'])
         def session_delete():
-            if 'user_id' in session:
-                del session['user_id']
+            auth.logout()
             return ''
 
         @self.app.route('/session', methods=['GET'])
