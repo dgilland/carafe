@@ -179,10 +179,13 @@ app = create_app(__name__, options={'auth': {'provider': provider}})
 @app.route('/login/')
 def login():
     if valid:
-        # default is for `auth` to look for `session['user_id']` to signify successful login
-        # so be sure to set it on successful login
-        session['user_id'] = request.form['user_id']
+        auth.login(request.form['user_id'])
     return ''
+
+@app.route('/logout/')
+def logout():
+    auth.logout()
+    reutrn ''
 
 @app.route('/auth-protected/')
 @auth.require.auth(401)
