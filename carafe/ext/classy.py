@@ -123,14 +123,9 @@ class BaseView(FlaskView):
     permissions = {}
 
     @property
-    def request_data(self):
-        '''Get incoming request data'''
-        return request.get_dict()
-
-    @property
-    def request_args(self):
-        '''Get incoming request args'''
-        return request.args
+    def request(self):
+        '''Proxy to request object'''
+        return request
 
     @property
     def _dict_namespace(self):
@@ -177,7 +172,7 @@ class ReadView(BaseView):
         return self._to_dict(self._index())
 
     def _index(self):
-        return self.controller.index(params=self.request_args)
+        return self.controller.index(params=self.request.args)
 
     def get(self, _id):
         return self._to_dict(self._get(_id))
@@ -193,13 +188,13 @@ class WriteView(BaseView):
         return self._to_dict(self._post())
 
     def _post(self):
-        return self.controller.post(self.request_data)
+        return self.controller.post(self.request.data)
 
     def put(self, _id):
         return self._to_dict(self._put(_id))
 
     def _put(self, _id):
-        results = self.controller.put(_id, self.request_data)
+        results = self.controller.put(_id, self.request.data)
         return self._results_or_404(results)
 
     def patch(self, _id):
@@ -207,7 +202,7 @@ class WriteView(BaseView):
 
     def _patch(self, _id):
         ctrl = self.controller
-        results = getattr(ctrl, 'patch', ctrl.put)(_id, self.request_data)
+        results = getattr(ctrl, 'patch', ctrl.put)(_id, self.request.data)
         return self._results_or_404(results)
 
     def delete(self, _id):
