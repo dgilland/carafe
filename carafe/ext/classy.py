@@ -86,11 +86,6 @@ class BaseView(FlaskView):
 
     # controller class which has hooks for index(), get(), post(), put(), patch(), and delete()
     __controller__ = None
-    # attribute which will reference the initialized controller
-    # @note: this will be set when `self.controller` used
-    _controller = None
-    # optional controller kargs used when initializing controller
-    __controller_kargs__ = {}
 
     # namespace to apply to returned data when returning json response
     dict_namespace = None
@@ -141,9 +136,8 @@ class BaseView(FlaskView):
 
     @property
     def controller(self):
-        if self._controller is None:
-            self._controller = self.__controller__(**self.__controller_kargs__)
-        return self._controller
+        # override as needed for custom initialization
+        return self.__controller__()
 
     def after_request(self, name, response):
         # send `after_<http-method>` signal

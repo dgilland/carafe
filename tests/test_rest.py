@@ -76,8 +76,12 @@ class View(RestView):
     route_base = 'view'
 
     __controller__ = Ctrl
-    __controller_kargs__ = {'db': db}
+
     dict_namespace = 'data'
+
+    @property
+    def controller(self):
+        return self.__controller__(db=db)
 
 class TestRestBase(TestBase):
     __client_class__ = carafe.JsonClient
