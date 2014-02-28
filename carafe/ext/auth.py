@@ -80,12 +80,22 @@ class Auth(object):
         self.principal.identity_loader(self.session_identity_loader)
         identity_loaded.connect_via(app)(self.on_identity_loaded)
 
+    @property
+    def session_id_key(self):
+        return current_app.config['CARAFE_AUTH_SESSION_ID_KEY']
+
+    @property
+    def identity_id_key(self):
+        return current_app.config['CARAFE_AUTH_IDENTITY_ID_KEY']
+
+    @property
+    def identity_roles_key(self):
+        return current_app.config['CARAFE_AUTH_IDENTITY_ROLES_KEY']
+
     def session_identity_loader(self):
         '''Fetch user id from session using config's auth id key'''
-        id_key = current_app.config['CARAFE_AUTH_SESSION_ID_KEY']
-
-        if id_key in session:
-            identity = Identity(session[id_key])
+        if self.session_id_key in session:
+            identity = Identity(session[self.session_id_key])
         else:
             identity = None
 
@@ -97,20 +107,18 @@ class Auth(object):
         # potentially, provider may return a different user than original identity
         # (e.g. app provides way for admin users to access site using a different user account)
         provider = current_app.extensions['CARAFE_AUTH']['provider']
-        id_key = current_app.config['CARAFE_AUTH_IDENTITY_ID_KEY']
-        roles_key = current_app.config['CARAFE_AUTH_IDENTITY_ROLES_KEY']
 
         if provider:
             ident = provider.identify(identity)
         else:
-            ident = {id_key: None}
+            ident = {self.identity_id_key: None}
 
         # provide auth (whether user is not anonymous)
         if ident.get(id_key):
             identity.provides.add(auth_need)
 
         # provide roles
-        for role in ident.get(roles_key, []):
+        for role in ident.get(self.identity_roles_key, []):
             identity.provides.add(RoleNeed(role))
 
 class PermissionFactory(object):
