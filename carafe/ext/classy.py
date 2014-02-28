@@ -60,20 +60,20 @@ def noop(*args, **kargs):
 
 class MetaView(_FlaskViewMeta):
     def __new__(cls, name, bases, dct):
-		if 'permissions' in dct:
-		    # if permissions dict defined on class,
-		    # then set corresponding permissions keys on class dict
-		    # and decorate with supplied functions
-			for method, permissions in dct['permissions'].iteritems():
-				dct[method] = dct.get(method, noop)
+        if 'permissions' in dct:
+            # if permissions dict defined on class,
+            # then set corresponding permissions keys on class dict
+            # and decorate with supplied functions
+            for method, permissions in dct['permissions'].iteritems():
+                dct[method] = dct.get(method, noop)
 
-				if not isinstance(permissions, list):
-				    permissions = [permissions]
+                if not isinstance(permissions, list):
+                    permissions = [permissions]
 
-				for permission in permissions:
-					dct[method] = permission(dct[method])
+                for permission in permissions:
+                    dct[method] = permission(dct[method])
 
-		return type.__new__(cls, name, bases, dct)
+        return type.__new__(cls, name, bases, dct)
 
 class BaseView(FlaskView):
     __metaclass__ = MetaView
