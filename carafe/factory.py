@@ -1,18 +1,13 @@
 
 from collections import defaultdict
 
-from flask import Flask
-
 import core
 
 def create_app(package_name, config=None, options=None, **flask_options):
     if options is None:
         options = {}
 
-    app = Flask(package_name, **flask_options)
-
-    # extend base flask Request class with our own
-    app.request_class = core.Request
+    app = core.FlaskCarafe(package_name, **flask_options)
 
     app.config.from_object(config)
 

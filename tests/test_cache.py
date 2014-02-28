@@ -77,7 +77,6 @@ class TestCache(TestCacheBase):
         tracker = {'count': 0}
 
         class MyView(MethodView):
-            @jsonify
             @cache.cached_view(timeout=timeout)
             def get(self, _id):
                 tracker['count'] += 1

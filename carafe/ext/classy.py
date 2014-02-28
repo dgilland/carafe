@@ -96,10 +96,8 @@ class BaseView(FlaskView):
     # when invalidating this class' cache keys, also invalidate cache keys with these namespaces
     cache_cascade = []
 
-    # @note: originally wanted to place the `to_dict` decorator here,
-    # but, alas poor Yorick, the `self` needs to be passed in and that won't happen here.
-    # so have to use the `@to_dict` syntax around the method def instead.
-    decorators = [jsonify]
+    # universal decorators applied to all view routes
+    decorators = []
 
     # assign permissions to instance methods
     # `keys` correspond to method that has permission requirements

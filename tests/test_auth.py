@@ -60,9 +60,8 @@ class TestAuthBase(TestBase):
             return ''
 
         @self.app.route('/session', methods=['GET'])
-        @jsonify
         def session_get():
-            return session
+            return dict(session)
 
         @self.app.route('/auth')
         @auth.require.login(401)

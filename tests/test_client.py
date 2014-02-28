@@ -8,7 +8,6 @@ from .base import TestBase
 class TestClientBase(TestBase):
     def setUp(self):
         @self.app.route('/', methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE'])
-        @jsonify
         def index():
             return {'data': request.get_dict(), 'params': request.args}
 

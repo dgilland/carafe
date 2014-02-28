@@ -17,7 +17,6 @@ class TestRequest(TestBase):
 
         # define echo route here so each test can access it
         @self.app.route('/', methods=['POST'])
-        @jsonify
         def index():
             return request.get_dict()
 
@@ -49,7 +48,6 @@ class TestRequest(TestBase):
     def test_get_dict_cached(self):
         '''Test request.get_dict() caching'''
         @self.app.route('/cached', methods=['POST'])
-        @jsonify
         def cached():
             override = {'override': 'data'}
 
