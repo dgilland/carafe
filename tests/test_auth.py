@@ -66,7 +66,7 @@ class TestAuthBase(TestBase):
             return session
 
         @self.app.route('/auth')
-        @auth.require.auth(401)
+        @auth.require.login(401)
         def auth_handler():
             return ''
 

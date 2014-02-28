@@ -11,7 +11,7 @@ from flask.ext.principal import (
     TypeNeed
 )
 
-auth_need = TypeNeed('auth')
+login_need = TypeNeed('login')
 
 class SQLAlchemyAuthProvider(object):
     '''
@@ -114,8 +114,8 @@ class Auth(object):
             ident = {self.identity_id_key: None}
 
         # provide auth (whether user is not anonymous)
-        if ident.get(id_key):
-            identity.provides.add(auth_need)
+        if ident.get(self.identity_id_key):
+            identity.provides.add(login_need)
 
         # provide roles
         for role in ident.get(self.identity_roles_key, []):
@@ -124,7 +124,7 @@ class Auth(object):
 class PermissionFactory(object):
     def __init__(self):
         self._permissions = {
-            'auth': Permission(auth_need)
+            'login': Permission(login_need)
         }
 
     def __getattr__(self, attr):
