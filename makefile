@@ -16,7 +16,9 @@ COVERAGE_TARGET = carafe
 # Targets
 ##
 
-build:
+build: clean install
+
+install:
 	rm -rf $(ENV_NAME)
 	virtualenv $(ENV_NAME) --python=python2.7
 	$(PIP) install -r requirements.txt --allow-external twill --allow-unverified twill
@@ -25,18 +27,20 @@ test:
 	$(ENV_ACT) py.test $(PYTEST_ARGS) $(COVERAGE_ARGS) $(COVERAGE_TARGET) $(PYTEST_TARGET)
 
 testall:
+	rm -rf .tox
 	$(ENV_ACT) tox
 
 clean:
 	rm -rf $(ENV_NAME)
+	rm -rf .tox
 	find . -name \*.pyc -type f -delete
 	find . -name __pycache__ -exec rm -rf {} \;
-	rm -rf dist *.egg*
+	rm -rf dist *.egg* build
 
 release:
 	$(ENV_ACT) python setup.py sdist bdist_wheel
 	$(ENV_ACT) twine upload dist/*
-	rm -rf dist *.egg*
+	rm -rf dist *.egg* build
 
 ##
 # TravisCI
