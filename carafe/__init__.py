@@ -16,3 +16,6 @@ from .core import (
 	cache,
 	auth
 )
+
+__version__ = '0.1.0'
+__author__ = 'Derrick Gilland <dgilland@gmail.com>'
