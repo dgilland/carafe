@@ -139,7 +139,9 @@ class TestCache(TestCacheBase):
 
         cache_keys = self.cache_keys()
 
-        self.assertIn('index:view:/?a=a&b=b', cache_keys)
+        # @note: this is hacky but the order of the params is not deterministic
+        # i'm sure there's a better way to do this but this works for now
+        self.assertTrue('index:view:/?a=a&b=b' in cache_keys or 'index:view:/?b=b&a=a' in cache_keys)
         self.assertIn('noviewargs:view:/noviewargs', cache_keys)
 
 class TestCacheClear(TestCacheBase):
