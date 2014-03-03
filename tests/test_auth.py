@@ -31,7 +31,7 @@ class TestAuthBase(TestBase):
     class __config__(object):
         SECRET_KEY = 'secret key'
 
-    __client_class__ = carafe.JsonClient
+    __client_class__ = carafe.JSONClient
 
     regular_user_id = 1
     admin_user_id = 2

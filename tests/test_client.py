@@ -1,6 +1,6 @@
 
 from flask import request
-from carafe import Client, JsonClient
+from carafe import Client, JSONClient
 from carafe.core import jsonify
 
 from .base import TestBase
@@ -34,8 +34,8 @@ class TestClient(TestClientBase):
         self.assertEqual(self.client.patch('/', self.data).json['data'], self.data)
         self.assertEqual(self.client.patch('/', data=self.data).json['data'], self.data)
 
-class TestJsonClient(TestClientBase):
-    __client_class__ = JsonClient
+class TestJSONClient(TestClientBase):
+    __client_class__ = JSONClient
 
     # use number values since their type should be preserved via json conversion
     data = {'x': 1, 'y': 2}

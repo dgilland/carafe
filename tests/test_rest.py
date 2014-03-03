@@ -84,7 +84,7 @@ class View(RestView):
         return self.__controller__(db=db)
 
 class TestRestBase(TestBase):
-    __client_class__ = carafe.JsonClient
+    __client_class__ = carafe.JSONClient
 
     def setUp(self):
         register_view(self.app, View)

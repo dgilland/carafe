@@ -21,7 +21,7 @@ class TestCacheBase(TestBase):
         CACHE_TYPE = 'simple'
         CACHE_KEY_PREFIX = ''
 
-    __client_class__ = carafe.JsonClient
+    __client_class__ = carafe.JSONClient
 
     # need to mock a cache server similar to redis to fully test cache clearing functionality
     class MockCacheServer(object):

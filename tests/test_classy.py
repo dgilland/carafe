@@ -70,7 +70,7 @@ responses = {
 }
 
 class TestClassyBase(TestBase):
-    __client_class__ = carafe.JsonClient
+    __client_class__ = carafe.JSONClient
 
 class TestClassyRegister(TestClassyBase):
 

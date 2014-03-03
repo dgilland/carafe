@@ -5,7 +5,7 @@ import ext
 import rest
 import utils
 
-from .client import Client, JsonClient
+from .client import Client, JSONClient
 from .factory import create_app
 from .core import (
 	jsonify,

@@ -40,7 +40,7 @@ class Client(FlaskClient):
         kargs['data'] = data
         return super(Client, self).patch(url, **kargs)
 
-class JsonClient(Client):
+class JSONClient(Client):
     def open(self, *args, **kargs):
         # all requests will be treated like JSON unless otherwise specified
         kargs.setdefault('content_type', 'application/json')
