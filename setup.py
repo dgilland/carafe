@@ -7,7 +7,7 @@ Flask application factory with extensions geared towards JSON APIs.
 Documentation: https://github.com/dgilland/carafe
 """
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='carafe',
@@ -18,7 +18,7 @@ setup(
     author_email='dgilland@gmail.com',
     description='Flask application factory with extensions geared towards JSON APIs.',
     long_description=__doc__,
-    packages=['carafe'],
+    packages=find_packages(exclude=['*.tests', '*.tests.*', 'tests.*', 'tests']),
     install_requires=[
         'Flask>=0.10.1',
         'Flask-Cache>=0.12',
