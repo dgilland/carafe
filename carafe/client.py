@@ -1,8 +1,4 @@
 
-import os
-import cStringIO as StringIO
-from contextlib import contextmanager
-
 from flask.testing import FlaskClient
 from flask import json
 from werkzeug import cached_property, urls
