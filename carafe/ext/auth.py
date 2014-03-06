@@ -152,8 +152,7 @@ class Auth(object):
         user_id = session.get(self.session_id_key)
         if user_id:
             del session[self.session_id_key]
-            self.send_identity_changed(user_id)
-
+            self.send_identity_changed(None)
 
 
 class PermissionFactory(object):
