@@ -124,7 +124,7 @@ class Auth(object):
         else:
             ident = {self.identity_id_key: None}
 
-        if self.user_id() and not ident:
+        if self.user_id and not ident:
             # session has an user_id but the ident return is empty
             # user possibly deleted or inactivated in another process
             self.logout()
