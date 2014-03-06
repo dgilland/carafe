@@ -48,7 +48,7 @@ opts = {
 
 ```python
 # enable/disable extension
-CARAFE_SESSION_PERMANENT = True
+CARAFE_SESSION_ENABLED = True
 # combined with SECRET_KEY when signing cookies
 CARAFE_SESSION_SALT = 'my salt'
 # when true and SESSION_PERMANENT_LIFETIME > 0, session is set to permanent
@@ -249,13 +249,13 @@ Attaches additional loggers to `app.logger`. Provides proxy to `app.logger` via 
 
 ```python
 # enable/disable extension as a whole (False disables all types of logging)
-CARAFE_LOGGER_ENABLED
+CARAFE_LOGGER_ENABLED = False
 
 ##
 # Rotating file logger
 ##
 # enable/disable rotating file logger
-CARAFE_LOGGER_RF_ENABLED
+CARAFE_LOGGER_RF_ENABLED = False
 # filename
 CARAFE_LOGGER_RF_FILENAME
 # file write mode
