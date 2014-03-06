@@ -187,6 +187,10 @@ def logout():
     auth.logout()
     reutrn ''
 
+@app.route('/session-user-id/')
+def session_user_id():
+	return str(auth.user_id)
+
 @app.route('/auth-protected/')
 @auth.require.auth(401)
 def auth_protected():

@@ -6,6 +6,7 @@ from flask.ext.principal import (
     identity_loaded,
     identity_changed,
     Identity,
+    AnonymousIdentity,
     Permission,
     UserNeed,
     RoleNeed,
@@ -13,6 +14,7 @@ from flask.ext.principal import (
 )
 
 login_need = TypeNeed('login')
+
 
 class SQLAlchemyAuthProvider(object):
     '''
@@ -49,6 +51,8 @@ class SQLAlchemyAuthProvider(object):
 
     def get_user(self, _id):
         '''Return user object from database.'''
+        if _id is None:
+            return None
         return self.session.query(self.__model__).get(_id)
 
     def get_roles(self, user):
@@ -57,6 +61,8 @@ class SQLAlchemyAuthProvider(object):
 
 
 class Auth(object):
+    _extension_name = 'carafe.auth'
+
     def __init__(self, app=None, provider=None):
         self.principal = Principal(use_sessions=False)
         self.provider = provider
@@ -71,10 +77,10 @@ class Auth(object):
         app.config.setdefault('CARAFE_AUTH_IDENTITY_ID_KEY', 'id')
         app.config.setdefault('CARAFE_AUTH_IDENTITY_ROLES_KEY', 'roles')
 
-        if not hasattr(app, 'extensions'):
-            app.extensions = {} # pragma: no cover
+        if not hasattr(app, 'extensions'): # pragma: no cover
+            app.extensions = {}
 
-        app.extensions['CARAFE_AUTH'] = {'provider': provider}
+        app.extensions[self._extension_name] = {'provider': provider}
 
         # @note: instead of having principal use it's session loader, we'll use ours
         self.principal.init_app(app)
@@ -107,12 +113,17 @@ class Auth(object):
         # whatever is returned is used for our identity
         # potentially, provider may return a different user than original identity
         # (e.g. app provides way for admin users to access site using a different user account)
-        provider = current_app.extensions['CARAFE_AUTH']['provider']
+        provider = current_app.extensions[self._extension_name]['provider']
 
         if provider:
             ident = provider.identify(identity)
         else:
             ident = {self.identity_id_key: None}
+
+        if self.user_id() and not ident:
+            # session has an user_id but the ident return is empty
+            # user possibly deleted or inactivated in another process
+            self.logout()
 
         # provide auth (whether user is not anonymous)
         if ident.get(self.identity_id_key):
@@ -123,7 +134,8 @@ class Auth(object):
             identity.provides.add(RoleNeed(role))
 
     def send_identity_changed(self, user_id):
-        identity_changed.send(current_app._get_current_object(), identity=Identity(user_id))
+        identity = AnonymousIdentity() if user_id is None else Identity(user_id)
+        identity_changed.send(current_app._get_current_object(), identity=identity)
 
     def login(self, user_id):
         # set session user id
@@ -137,6 +149,10 @@ class Auth(object):
         if user_id:
             del session[self.session_id_key]
             self.send_identity_changed(user_id)
+
+    def user_id(self):
+        return session.get(self.session_id_key)
+
 
 class PermissionFactory(object):
     def __init__(self):
