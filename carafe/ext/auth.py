@@ -99,6 +99,10 @@ class Auth(object):
     def identity_roles_key(self):
         return current_app.config['CARAFE_AUTH_IDENTITY_ROLES_KEY']
 
+    @property
+    def user_id(self):
+        return session.get(self.session_id_key)
+
     def session_identity_loader(self):
         '''Fetch user id from session using config's auth id key'''
         if self.session_id_key in session:
@@ -150,8 +154,6 @@ class Auth(object):
             del session[self.session_id_key]
             self.send_identity_changed(user_id)
 
-    def user_id(self):
-        return session.get(self.session_id_key)
 
 
 class PermissionFactory(object):
