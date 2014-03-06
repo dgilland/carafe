@@ -8,6 +8,7 @@ from carafe.core import auth, jsonify
 from carafe.ext.auth import SQLAlchemyAuthProvider
 from .base import TestBase
 
+
 ##
 # mock session object expected by auth.SQLAlchemyAuthProvider
 ##
@@ -26,6 +27,7 @@ class Session(object):
 
     def query(self, *args, **kargs):
         return self.Storage
+
 
 class TestAuthBase(TestBase):
     class __config__(object):
@@ -74,26 +76,27 @@ class TestAuthBase(TestBase):
     def logout(self):
         return self.client.delete('/session')
 
+
 class TestAuth(TestAuthBase):
     '''Test auth extension'''
 
     def test_auth_permission(self):
         '''Test basic auth permission'''
         # test without logging in
-        self.assertEqual(self.client.get('/auth').status_code, 401)
+        self.assertStatus(self.client.get('/auth'), 401)
 
         # login
         self.login(self.regular_user_id)
         self.assertEqual(self.client.get('/session').json['user_id'], self.regular_user_id)
 
         # test that identity is now recognized
-        self.assertEqual(self.client.get('/auth').status_code, 200)
+        self.assertStatus(self.client.get('/auth'), 200)
 
         # logout
         self.logout()
 
         # auth is restricted again
-        self.assertEqual(self.client.get('/auth').status_code, 401)
+        self.assertStatus(self.client.get('/auth'), 401)
 
     def test_general_permission(self):
         '''Test general permissions'''
@@ -115,18 +118,32 @@ class TestAuth(TestAuthBase):
         # login with user who does have necessary permissions
         self.client.post('/session', {'user_id': self.regular_user_id})
         self.assertEqual(self.client.get('/session').json['user_id'], self.regular_user_id)
-        self.assertEqual(self.client.get('/admin').status_code, 403)
-        self.assertEqual(self.client.get('/manager').status_code, 403)
-        self.assertEqual(self.client.get('/general').status_code, 401)
+        self.assertStatus(self.client.get('/admin'), 403)
+        self.assertStatus(self.client.get('/manager'), 403)
+        self.assertStatus(self.client.get('/general'), 401)
 
         # login with user who does have necessary permissions (except one)
         self.client.post('/session', {'user_id': self.admin_user_id})
         self.assertEqual(self.client.get('/session').json['user_id'], self.admin_user_id)
-        self.assertEqual(self.client.get('/admin').status_code, 200)
-        self.assertEqual(self.client.get('/manager').status_code, 200)
-        self.assertEqual(self.client.get('/general').status_code, 401)
+        self.assertStatus(self.client.get('/admin'), 200)
+        self.assertStatus(self.client.get('/manager'), 200)
+        self.assertStatus(self.client.get('/general'), 401)
 
-class TestAuthProvider(TestAuthBase):
+    def test_user_invalidated_offline(self):
+        '''Test that user is logged out if their account is removed offline'''
+        orig_user = Session.Storage.users[self.regular_user_id]
+
+        self.login(self.regular_user_id)
+
+        self.assertStatus(self.client.get('/auth'), 200)
+
+        del Session.Storage.users[self.regular_user_id]
+
+        self.assertStatus(self.client.get('/auth'), 401)
+
+        Session.Storage.users[self.regular_user_id] = orig_user
+
+class TestAuthProviderMissing(TestAuthBase):
 
     def create_app(self):
         # don't provide options which is where provider is passed in
@@ -140,5 +157,5 @@ class TestAuthProvider(TestAuthBase):
         '''Test that not setting a provider causes identity to not load'''
         self.client.post('/session', {'user_id': self.regular_user_id})
         self.assertEqual(self.client.get('/session').json['user_id'], self.regular_user_id)
-        self.assertEqual(self.client.get('/auth').status_code, 401)
+        self.assertStatus(self.client.get('/auth'), 401)
 
