@@ -151,6 +151,29 @@ class BaseView(FlaskView):
             abort(404)
         return results
 
+    def _index(self):
+        return self.controller.index(params=self.request.args)
+
+    def _get(self, _id):
+        results = self.controller.get(_id=_id)
+        return self._results_or_404(results)
+
+    def _post(self):
+        return self.controller.post(self.request.data)
+
+    def _put(self, _id):
+        results = self.controller.put(_id, self.request.data)
+        return self._results_or_404(results)
+
+    def _patch(self, _id):
+        ctrl = self.controller
+        results = getattr(ctrl, 'patch', ctrl.put)(_id, self.request.data)
+        return self._results_or_404(results)
+
+    def _delete(self, _id):
+        results = self.controller.delete(_id)
+        return self._results_or_404(results)
+
 # @note: Each of the Rest endpoints below comes with a corresponding `_<method>` function.
 # The purpose of this is to make it easier to subclass a method without then having to also
 # duplicate the decoratores applied to the public method. Also, in the event that caching
@@ -163,15 +186,8 @@ class ReadView(BaseView):
     def index(self):
         return self._to_dict(self._index())
 
-    def _index(self):
-        return self.controller.index(params=self.request.args)
-
     def get(self, _id):
         return self._to_dict(self._get(_id))
-
-    def _get(self, _id):
-        results = self.controller.get(_id=_id)
-        return self._results_or_404(results)
 
 class WriteView(BaseView):
     '''REST write endpoints'''
@@ -179,30 +195,14 @@ class WriteView(BaseView):
     def post(self):
         return self._to_dict(self._post())
 
-    def _post(self):
-        return self.controller.post(self.request.data)
-
     def put(self, _id):
         return self._to_dict(self._put(_id))
-
-    def _put(self, _id):
-        results = self.controller.put(_id, self.request.data)
-        return self._results_or_404(results)
 
     def patch(self, _id):
         return self._to_dict(self._patch(_id))
 
-    def _patch(self, _id):
-        ctrl = self.controller
-        results = getattr(ctrl, 'patch', ctrl.put)(_id, self.request.data)
-        return self._results_or_404(results)
-
     def delete(self, _id):
         return self._to_dict(self._delete(_id))
-
-    def _delete(self, _id):
-        results = self.controller.delete(_id)
-        return self._results_or_404(results)
 
 class RestView(ReadView, WriteView):
     '''REST read/write endpoints'''
