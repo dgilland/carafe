@@ -141,18 +141,17 @@ class Auth(object):
         identity = AnonymousIdentity() if user_id is None else Identity(user_id)
         identity_changed.send(current_app._get_current_object(), identity=identity)
 
-    def login(self, user_id):
-        # set session user id
-        session[self.session_id_key] = user_id
+    def login(self, user_id, propagate=True):
+        if session.get(self.session_id_key) != user_id:
+            session[self.session_id_key] = user_id
+            if propagate:
+                self.send_identity_changed(user_id)
 
-        # notify of identity change
-        self.send_identity_changed(user_id)
-
-    def logout(self):
-        user_id = session.get(self.session_id_key)
-        if user_id:
+    def logout(self, propagate=True):
+        if session.get(self.session_id_key):
             del session[self.session_id_key]
-            self.send_identity_changed(None)
+            if propagate:
+                self.send_identity_changed(None)
 
 
 class PermissionFactory(object):
