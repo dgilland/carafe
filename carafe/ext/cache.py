@@ -6,12 +6,6 @@ from flask import request, current_app
 from werkzeug import urls
 from flask.ext.cache import Cache as CacheBase
 
-CACHE_VIEW_ID_KEY = '_id'
-CACHE_KEY_FORMATS = {
-    'view': '{namespace}:view:{path}',
-    # using default, this translates to '{namespace}:_id:{_id}'
-    CACHE_VIEW_ID_KEY: '{{namespace}}:{0}:{{{0}}}'.format(CACHE_VIEW_ID_KEY)
-}
 
 class Cache(CacheBase):
     '''
