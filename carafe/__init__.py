@@ -17,5 +17,5 @@ from .core import (
 	auth
 )
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 __author__ = 'Derrick Gilland <dgilland@gmail.com>'

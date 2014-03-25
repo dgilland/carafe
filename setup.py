@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='carafe',
-    version='0.1.4',
+    version='0.1.5',
     url='https://github.com/dgilland/carafe',
     license='MIT',
     author='Derrick Gilland',
