@@ -4,9 +4,6 @@ Flask application factory with extensions geared towards JSON APIs
 
 ## Extensions
 
-```python
-```
-
 ### json
 
 Sets `app.json_encoder` and default app error handler to return JSON response for error messages.
@@ -89,15 +86,16 @@ class MyView(FlaskView):
     @cache.cached_view(timeout=3600)
     def index(self):
         # this route gets cached with key = `MyView:view:{path}`
-        # and includes any request.args used (i.e. `/route/` and `/route/?foo=bar` have different cache keys)
+        # and includes any request.args used (i.e. `/route/`
+        # and `/route/?foo=bar` have different cache keys)
         return ''
 
     def post(self):
         return ''
 
     def after_post(self):
-        # after post, then signal is sent which tells `cache` to delete both `MyView` prefixed keys
-        # as well as `MyDependentView` prefixed keys
+        # after post, then signal is sent which tells `cache` to delete
+        # both `MyView` prefixed keys as well as `MyDependentView` prefixed keys
         signaler.after_post.send()
 
 class MyDependentView(FlaskView):
@@ -110,7 +108,8 @@ class MyOtherView(FlaskView):
     @cache.cached_view(include_request_args=False)
     def index(self):
         # this route gets cached with key = `my-awesome-namespace:view:{path}`
-        # and doesn't include request.args (i.e. '/route/' and '/route/?foo=bar' have the same cache key)
+        # and doesn't include request.args
+        # (i.e. '/route/' and '/route/?foo=bar' have the same cache key)
         return ''
 ```
 
@@ -161,7 +160,8 @@ MyAuthProvider(SQLAlchemyAuthProvider):
     __model__ = User
 
     ##
-    # Override these methods if they don't return user data correctly based on your models
+    # Override these methods if they don't return user data
+    # correctly based on your models
     ##
 
     def get_user(self, _id):
@@ -189,7 +189,7 @@ def logout():
 
 @app.route('/session-user-id/')
 def session_user_id():
-	return str(auth.user_id)
+    return str(auth.user_id)
 
 @app.route('/auth-protected/')
 @auth.require.auth(401)
