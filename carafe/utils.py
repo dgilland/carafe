@@ -90,7 +90,7 @@ def url_join(*parts):
     >>> assert url_join('/', 'a', 'b', 'c', '/') == '/a/b/c/'
     >>> assert url_join([]) == ''
     '''
-    parts = flatten(parts)
+    parts = map(str, flatten(parts))
     leading = '/' if parts and parts[0].startswith('/') else ''
     trailing = '/' if parts and parts[-1].endswith('/') else ''
     url = leading + '/'.join([p.strip('/') for p in parts if p.strip('/')]) + trailing
