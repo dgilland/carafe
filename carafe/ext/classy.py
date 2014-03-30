@@ -66,8 +66,10 @@ def to_dict(func):
         return data
     return decorated
 
+
 def noop(*args, **kargs):
     pass
+
 
 class MetaView(_FlaskViewMeta):
     def __new__(cls, name, bases, dct):
@@ -85,6 +87,7 @@ class MetaView(_FlaskViewMeta):
                     dct[method] = permission(dct[method])
 
         return type.__new__(cls, name, bases, dct)
+
 
 class BaseView(FlaskView):
     __metaclass__ = MetaView
@@ -185,37 +188,32 @@ class BaseView(FlaskView):
         results = self.controller.delete(_id)
         return self._results_or_404(results)
 
+
 # @note: Each of the Rest endpoints below comes with a corresponding `_<method>` function.
 # The purpose of this is to make it easier to subclass a method without then having to also
 # duplicate the decoratores applied to the public method. Also, in the event that caching
 # is enabled on an endpoint and another endpoint needs a non-cached version, or if `super()`
 # needs to be called, then the `_<method>` function can be used to bypass the cache.
 
-class ReadView(BaseView):
-    '''REST read endpoints'''
+class RestView(BaseView):
+    '''REST read/write endpoints'''
+
+    decorators = [to_dict]
 
     def index(self):
-        return self._to_dict(self._index())
+        return self._index()
 
     def get(self, _id):
-        return self._to_dict(self._get(_id))
-
-class WriteView(BaseView):
-    '''REST write endpoints'''
+        return self._get(_id)
 
     def post(self):
-        return self._to_dict(self._post())
+        return self._post()
 
     def put(self, _id):
-        return self._to_dict(self._put(_id))
+        return self._put(_id)
 
     def patch(self, _id):
-        return self._to_dict(self._patch(_id))
+        return self._patch(_id)
 
     def delete(self, _id):
-        return self._to_dict(self._delete(_id))
-
-class RestView(ReadView, WriteView):
-    '''REST read/write endpoints'''
-    pass
-
+        return self._delete(_id)
