@@ -3,19 +3,20 @@ from flask.testing import FlaskClient
 from flask import json
 from werkzeug import cached_property, urls
 
+
 class JsonResponseMixin(object):
-    '''
-    Mixin which adds method to jsonify response data
-    '''
+    '''Mixin which adds method to jsonify response data'''
     @cached_property
     def json(self):
         return json.loads(self.data)
+
 
 def make_client_response(response_class):
     class ClientResponse(response_class, JsonResponseMixin):
         pass
 
     return ClientResponse
+
 
 class Client(FlaskClient):
     def get(self, url, params=None, **kargs):
@@ -35,6 +36,7 @@ class Client(FlaskClient):
     def patch(self, url, data, **kargs):
         kargs['data'] = data
         return super(Client, self).patch(url, **kargs)
+
 
 class JSONClient(Client):
     def open(self, *args, **kargs):
