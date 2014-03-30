@@ -2,7 +2,6 @@
 import factory
 import core
 import ext
-import rest
 import utils
 
 from .client import Client, JSONClient
