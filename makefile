@@ -26,7 +26,7 @@ install:
 test:
 	$(ENV_ACT) py.test $(PYTEST_ARGS) $(COVERAGE_ARGS) $(COVERAGE_TARGET) $(PYTEST_TARGET)
 
-testall:
+test-full:
 	rm -rf .tox
 	$(ENV_ACT) tox
 
