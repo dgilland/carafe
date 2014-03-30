@@ -6,8 +6,6 @@ from .ext.logger import Logger
 from .ext.cache import Cache
 from .ext.signaler import signaler
 from .ext.auth import Auth
-#from .ext.classy import register_view, BaseView, ReadView, WriteView, RestView
-#from .rest import RestCtrl
 
 # extensions for use
 # each object below should expose an "init_app" function/method
