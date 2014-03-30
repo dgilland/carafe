@@ -11,7 +11,7 @@ from setuptools import setup, find_packages
 
 
 meta = {}
-with open('alchy/__meta__.py') as fp:
+with open('carafe/__meta__.py') as fp:
     exec(fp.read(), meta)
 
 
