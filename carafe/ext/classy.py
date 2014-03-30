@@ -1,7 +1,7 @@
 
 from functools import wraps
 
-from flask import request, abort
+from flask import request, abort, current_app
 from flask.ext.classy import FlaskView, _FlaskViewMeta, route
 
 from .signaler import signaler
@@ -45,14 +45,25 @@ def register_view(app, classes, route_prefix='', route_base='', subdomain=None, 
             trailing_slash=trailing_slash
         )
 
-def to_dict(f):
-    '''Simple wrapper around `_to_dict` which supports namespacing as defined at the class level'''
-    @wraps(f)
+def to_dict(func):
+    '''Wrapper around `self._to_dict` which supports namespacing as defined at the class level.'''
+    @wraps(func)
     def decorated(*args, **kargs):
-        self = args[0]
-        namespace = self._dict_namespace
-        data = f(*args, **kargs)
-        return _to_dict(data, namespace=namespace)
+        data = func(*args, **kargs)
+
+        if not isinstance(data, current_app.response_class):
+            # only convert to dict if function return is not Response
+
+            # if decorator called from FlaskView.decorators[],
+            # `self` won't be passed in so we need to get it from `func`
+            if hasattr(func, 'im_self'):
+                self = func.im_self
+            else:
+                self = args[0]
+
+            data = self._to_dict(data)
+
+        return data
     return decorated
 
 def noop(*args, **kargs):
