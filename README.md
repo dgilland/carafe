@@ -2,6 +2,40 @@
 
 Flask application factory with extensions geared towards JSON APIs
 
+## Quickstart
+
+Use `carafe` as an application factory:
+
+```python
+import carafe
+
+# make carafe extensions available for import from here
+# these will be initialized with the created app in
+# carafe.create_app()
+from carafe.core import (
+    logger,
+    cache,
+    auth,
+    signaler
+)
+
+def create_app(config=None):
+    # some extensions require/support arguments to their init_app functions
+    # this is how those would be passed in when using carafe.create_app()
+    options = {
+        'auth': {
+            'provider': MyAuthProvider()
+        },
+        'json': {
+            'encoder': MyJSONEncoder
+        }
+    }
+
+    app = carafe.create_app(__name__, config=config, options=options)
+
+    return app
+```
+
 ## Extensions
 
 ### json
