@@ -4,9 +4,9 @@ from functools import wraps
 from flask import request, abort
 from flask.ext.classy import FlaskView, _FlaskViewMeta, route
 
-from .json import jsonify
 from .signaler import signaler
-from ..utils import url_join, _to_dict, camelcase_to_underscore
+from ..utils import urlpathjoin, _to_dict, camelcase_to_underscore
+
 
 def register_view(app, classes, route_prefix='', route_base='', subdomain=None, trailing_slash=False, replace_prefix=False, replace_base=False):
     '''
@@ -39,8 +39,8 @@ def register_view(app, classes, route_prefix='', route_base='', subdomain=None, 
 
         cls.register(
             app,
-            route_prefix=url_join(prefix),
-            route_base=url_join(base),
+            route_prefix=urlpathjoin(prefix),
+            route_base=urlpathjoin(base),
             subdomain=subdomain,
             trailing_slash=trailing_slash
         )
