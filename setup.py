@@ -9,14 +9,20 @@ Documentation: https://github.com/dgilland/carafe
 
 from setuptools import setup, find_packages
 
+
+meta = {}
+with open('alchy/__meta__.py') as fp:
+    exec(fp.read(), meta)
+
+
 setup(
-    name='carafe',
-    version='0.1.5',
-    url='https://github.com/dgilland/carafe',
-    license='MIT',
-    author='Derrick Gilland',
-    author_email='dgilland@gmail.com',
-    description='Flask application factory with extensions geared towards JSON APIs.',
+    name=meta['__title__'],
+    version=meta['__version__'],
+    url=meta['__url__'],
+    license=meta['__license__'],
+    author=meta['__author__'],
+    author_email=meta['__email__'],
+    description=meta['__summary__'],
     long_description=__doc__,
     packages=find_packages(exclude=['*.tests', '*.tests.*', 'tests.*', 'tests']),
     install_requires=[
@@ -35,10 +41,10 @@ setup(
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Framework :: Flask',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
     ]
 )
