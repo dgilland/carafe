@@ -135,7 +135,7 @@ class BaseView(FlaskView):
     def _dict_namespace(self):
         namespace = getattr(self, 'dict_namespace', None)
 
-        if namespace is None:
+        if namespace is True:
             class_name = self.__class__.__name__
             if class_name.lower().endswith('view'):
                 class_name = class_name[:-4]
