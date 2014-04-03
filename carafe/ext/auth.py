@@ -65,12 +65,11 @@ class Auth(object):
 
     def __init__(self, app=None, provider=None):
         self.principal = Principal(use_sessions=False)
-        self.provider = provider
         self.require = PermissionFactory()
 
         self.app = app
-        if self.app: # pragma: no cover
-            self.init_app(app, self.provider)
+        if self.app:  # pragma: no cover
+            self.init_app(app, provider)
 
     def init_app(self, app, provider=None):
         app.config.setdefault('CARAFE_AUTH_SESSION_ID_KEY', 'user_id')
