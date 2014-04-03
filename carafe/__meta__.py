@@ -15,7 +15,7 @@ __title__ = 'carafe'
 __summary__ = 'Flask application factory with extensions geared towards JSON APIs'
 __url__ = 'https://github.com/dgilland/carafe'
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 __author__ = 'Derrick Gilland'
 __email__ = 'dgilland@gmail.com'
