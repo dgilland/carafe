@@ -2,7 +2,7 @@
 from functools import wraps
 
 from flask import request, abort, current_app
-from flask.ext.classy import FlaskView, _FlaskViewMeta, route
+from flask.ext.classy import FlaskView, route
 
 from .signaler import signaler
 from ..utils import urlpathjoin, _to_dict, camelcase_to_underscore
@@ -71,7 +71,7 @@ def noop(*args, **kargs):
     pass
 
 
-class MetaView(_FlaskViewMeta):
+class MetaView(type):
     def __new__(cls, name, bases, dct):
         if 'permissions' in dct:
             # if permissions dict defined on class,
