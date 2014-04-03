@@ -103,6 +103,10 @@ class Auth(object):
     def user_id(self):
         return session.get(self.session_id_key)
 
+    @property
+    def provider(self):
+        return current_app.extensions[self._extension_name]['provider']
+
     def session_identity_loader(self):
         '''Fetch user id from session using config's auth id key'''
         if self.session_id_key in session:
@@ -117,10 +121,8 @@ class Auth(object):
         # whatever is returned is used for our identity
         # potentially, provider may return a different user than original identity
         # (e.g. app provides way for admin users to access site using a different user account)
-        provider = current_app.extensions[self._extension_name]['provider']
-
-        if provider:
-            ident = provider.identify(identity)
+        if self.provider:
+            ident = self.provider.identify(identity)
         else:
             ident = {self.identity_id_key: None}
 
