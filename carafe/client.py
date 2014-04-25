@@ -54,4 +54,4 @@ class JSONClient(Client):
                 # in that case, it's probably ok to not serialize since that data dict won't be updated in the API
                 pass
 
-        return super(Client, self).open(*args, **kargs)
+        return super(JSONClient, self).open(*args, **kargs)
