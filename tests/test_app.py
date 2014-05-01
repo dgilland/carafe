@@ -28,17 +28,6 @@ class TestApp(TestBase):
         self.assertStatus(res, 201)
         self.assertEqual(res.data, self.content)
 
-    def test_return_content_headers(self):
-        @self.app.route('/')
-        def index():
-            return (self.app.response_class(self.content), {'X-TEST': 'test'})
-
-        res = self.client.get('/')
-
-        self.assertStatus(res, 200)
-        self.assertEqual(res.data, self.content)
-        self.assertEqual(res.headers['X-TEST'], 'test')
-
     def test_return_content_status_headers(self):
         @self.app.route('/')
         def index():
@@ -72,6 +61,17 @@ class TestApp(TestBase):
         self.assertStatus(res, 200)
         self.assertEqual(res.json['data'], self.content)
 
+    def test_return_dict_as_json_with_status_headers(self):
+        @self.app.route('/')
+        def index():
+            return ({'data': self.content}, 201, {'X-TEST': 'test'})
+
+        res = self.client.get('/')
+
+        self.assertStatus(res, 201)
+        self.assertEqual(res.json['data'], self.content)
+        self.assertEqual(res.headers['X-TEST'], 'test')
+
     def test_return_list_as_json(self):
         @self.app.route('/')
         def index():
@@ -81,6 +81,17 @@ class TestApp(TestBase):
 
         self.assertStatus(res, 200)
         self.assertEqual(res.json[0], self.content)
+
+    def test_return_list_as_json_with_status_headers(self):
+        @self.app.route('/')
+        def index():
+            return ([self.content], 201, {'X-TEST': 'test'})
+
+        res = self.client.get('/')
+
+        self.assertStatus(res, 201)
+        self.assertEqual(res.json[0], self.content)
+        self.assertEqual(res.headers['X-TEST'], 'test')
 
     def test_return_none_exception(self):
         @self.app.route('/')
