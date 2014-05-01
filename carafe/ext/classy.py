@@ -159,7 +159,7 @@ class BaseView(FlaskView):
 
     def after_request(self, name, response):
         # send `after_<http-method>` signal
-        signaler.send('after_' + request.method.lower(), self)
+        self.signaler.send('after_' + request.method.lower(), self)
 
         return response
 
