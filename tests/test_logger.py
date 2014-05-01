@@ -4,7 +4,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 import carafe
-from carafe.core import logger, Logger
+from carafe.ext.logger import Logger
+from .core import logger, Logger
 
 from .base import TestBase
 

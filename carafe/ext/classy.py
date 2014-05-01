@@ -4,8 +4,11 @@ from functools import wraps
 from flask import request, abort, current_app
 from flask_classy import FlaskView, route
 
-from .signaler import signaler
+from .signaler import Signaler
 from ..utils import urlpathjoin, _to_dict, camelcase_to_underscore
+
+
+signaler = Signaler()
 
 
 def register_view(app, classes, route_prefix='', route_base='', subdomain=None, trailing_slash=False, replace_prefix=False, replace_base=False):
@@ -128,6 +131,9 @@ class BaseView(FlaskView):
     # permission will be the only one used.
     # essentially, subclasses is like calling `Parent.permissions.update(Subclass.permissions)`
     permissions = {}
+
+    # instance of Signaler
+    signaler = signaler
 
     @property
     def request(self):

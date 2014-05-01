@@ -19,21 +19,19 @@ class Cache(CacheBase):
         super(Cache, self).__init__(app=app, with_jinja2_ext=with_jinja2_ext, config=config)
 
     def init_app(self, app, config=None):
-        self.app = app
-        if config is None:
-            config = self.config
-
         if config is None:
             config = app.config
 
         config.setdefault('CARAFE_CACHE_ENABLED', True)
         config.setdefault('CARAFE_CACHE_IGNORED_REQUEST_ARGS', [])
 
-        if config['CARAFE_CACHE_ENABLED']:
-            super(Cache, self).init_app(app, config=config)
+        if not config['CARAFE_CACHE_ENABLED']:  # pragma: no cover
+            return
 
-            if self.signaler:
-                self.connect_signals()
+        super(Cache, self).init_app(app, config=config)
+
+        if self.signaler:
+            self.connect_signals()
 
     def connect_signals(self):
         # @note: have to keep a handle on the signal for the receive event to work (not sure why exactly)

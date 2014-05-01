@@ -3,6 +3,9 @@ from functools import wraps, partial
 from threading import Thread
 import re
 
+from flask import jsonify as _jsonify
+
+
 class classproperty(object):
     '''
     Decorator that adds class properties.
@@ -27,12 +30,14 @@ def iterflatten(l):
         else:
             yield x
 
+
 def flatten(l):
     '''
     Return flattened list of a list/tuple of lists/tuples
     >>> assert flatten([1, [2,3], [4, [5, [6]], 7], 8]) == [1,2,3,4,5,6,7,8]
     '''
     return list(iterflatten(l))
+
 
 def async(f):
     '''
@@ -47,6 +52,7 @@ def async(f):
         thr = Thread(target=f, args=args, kwargs=kargs)
         thr.start()
     return wrapper
+
 
 def to_dict(data=None, namespace=None):
     '''
@@ -65,6 +71,7 @@ def to_dict(data=None, namespace=None):
     else:
         return __to_dict(data)
 
+
 def _to_dict(data, namespace=None):
     '''
     Converts elements of `data` using `data.to_dict()` or `data[].to_dict()`.
@@ -79,6 +86,7 @@ def _to_dict(data, namespace=None):
         data = {namespace: data}
 
     return data
+
 
 def urlpathjoin(*paths):
     '''Join URL paths into single URL while maintaining leading and trailing slashes
@@ -100,6 +108,7 @@ def urlpathjoin(*paths):
     url = leading + '/'.join([p.strip('/') for p in paths if p.strip('/')]) + trailing
     return url
 
+
 def camelcase_to_underscore(name):
     '''
     >>> assert camelcase_to_underscore('FooBar') == 'foo_bar'
@@ -111,3 +120,16 @@ def camelcase_to_underscore(name):
     s1 = first_cap_re.sub(r'\1_\2', name)
     return all_cap_re.sub(r'\1_\2', s1).lower()
 
+
+def jsonify(f=None, *args, **kargs):
+    '''Function or decorator that returns jsonfiy response'''
+    if callable(f):
+        @wraps(f)
+        def decorated(*args, **kargs):
+            return _jsonify(**f(*args, **kargs))
+        return decorated
+    else:
+        if f is not None:
+            # consider `f` a positional arg
+            args = tuple([f] + list(args))
+        return _jsonify(*args, **kargs)

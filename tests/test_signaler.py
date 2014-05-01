@@ -1,7 +1,9 @@
 
-from carafe.ext.signaler import signaler, Signaler
+from carafe.ext.signaler import Signaler
 
 from .base import TestBase
+from .core import signaler
+
 
 class TestSignaler(TestBase):
     '''Test signaler'''

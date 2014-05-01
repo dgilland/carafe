@@ -72,11 +72,15 @@ class Auth(object):
             self.init_app(app, provider)
 
     def init_app(self, app, provider=None):
+        app.config.setdefault('CARAFE_AUTH_ENABLED', True)
         app.config.setdefault('CARAFE_AUTH_SESSION_ID_KEY', 'user_id')
         app.config.setdefault('CARAFE_AUTH_IDENTITY_ID_KEY', 'id')
         app.config.setdefault('CARAFE_AUTH_IDENTITY_ROLES_KEY', 'roles')
 
-        if not hasattr(app, 'extensions'): # pragma: no cover
+        if not app.config['CARAFE_AUTH_ENABLED']:  # pragma: no cover
+            return
+
+        if not hasattr(app, 'extensions'):  # pragma: no cover
             app.extensions = {}
 
         app.extensions[self._extension_name] = {'provider': provider}
@@ -166,4 +170,3 @@ class PermissionFactory(object):
             self._permissions[attr] = Permission(RoleNeed(attr))
 
         return self._permissions[attr].require
-

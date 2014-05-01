@@ -5,9 +5,11 @@ import re
 from flask.views import MethodView
 
 import carafe
-from carafe.core import cache, signaler, jsonify
+from carafe.utils import jsonify
+from .core import cache, signaler
 
 from .base import TestBase
+
 
 def register_view(app, view, endpoint, url, pk='_id', pk_type='int'):
     view_func = view.as_view(endpoint)
@@ -69,6 +71,7 @@ class TestCacheBase(TestBase):
 
     def cache_keys(self):
         return cache.client._cache.keys() if cache.enabled else None
+
 
 class TestCache(TestCacheBase):
 
@@ -143,6 +146,7 @@ class TestCache(TestCacheBase):
         # i'm sure there's a better way to do this but this works for now
         self.assertTrue('index:view:/?a=a&b=b' in cache_keys or 'index:view:/?b=b&a=a' in cache_keys)
         self.assertIn('noviewargs:view:/noviewargs', cache_keys)
+
 
 class TestCacheClear(TestCacheBase):
 
@@ -264,6 +268,7 @@ class TestCacheClear(TestCacheBase):
         cache.clear_keys(cache.server.pipeline(), key, execute=True)
         self.assertNotIn(key, self.cache_keys())
 
+
 class TestCacheCascade(TestCacheBase):
     def setUp(self):
         cache.cache._client = self.MockCacheServer()
@@ -375,4 +380,3 @@ class TestCacheCascade(TestCacheBase):
         self.assertKeyPrefixEmpty('RestView')
         self.assertKeyPrefixEmpty('CascadeView')
         self.assertEqual(len(self.cache_keys()), 2)
-

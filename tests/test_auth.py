@@ -4,8 +4,10 @@ from collections import namedtuple
 from flask import session, request
 
 import carafe
-from carafe.core import auth, jsonify
 from carafe.ext.auth import SQLAlchemyAuthProvider
+
+from . import factory
+from .core import auth
 from .base import TestBase
 
 
@@ -44,7 +46,7 @@ class TestAuthBase(TestBase):
             'auth': {'provider': SQLAlchemyAuthProvider(Session())}
         }
 
-        app = carafe.factory.create_app(__name__, config=self.__config__, options=options)
+        app = factory.create_app(__name__, config=self.__config__, options=options)
         self.init_app(app)
 
         return app
@@ -148,7 +150,7 @@ class TestAuthProviderMissing(TestAuthBase):
     def create_app(self):
         # don't provide options which is where provider is passed in
         options = {}
-        app = carafe.factory.create_app(__name__, config=self.__config__, options=options)
+        app = factory.create_app(__name__, config=self.__config__, options=options)
         self.init_app(app)
 
         return app

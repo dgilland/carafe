@@ -1,15 +1,17 @@
 
 from flask import request
 from carafe import Client, JSONClient
-from carafe.core import jsonify
+from carafe.utils import jsonify
 
 from .base import TestBase
+
 
 class TestClientBase(TestBase):
     def setUp(self):
         @self.app.route('/', methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE'])
         def index():
             return {'data': request.get_dict(), 'params': request.args}
+
 
 class TestClient(TestClientBase):
     __client_class__ = Client
@@ -33,6 +35,7 @@ class TestClient(TestClientBase):
     def test_patch(self):
         self.assertEqual(self.client.patch('/', self.data).json['data'], self.data)
         self.assertEqual(self.client.patch('/', data=self.data).json['data'], self.data)
+
 
 class TestJSONClient(TestClientBase):
     __client_class__ = JSONClient

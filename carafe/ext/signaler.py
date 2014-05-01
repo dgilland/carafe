@@ -1,6 +1,7 @@
 
 from flask.signals import Namespace
 
+
 class Signaler(object):
     '''
     Collection of supported signals to use throughout application
@@ -31,5 +32,3 @@ class Signaler(object):
     def __getattr__(self, signal):
         '''Return signal object. If it doesn't exist in registry, create it.'''
         return self.make_signal(signal)
-
-signaler = Signaler()

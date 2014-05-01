@@ -2,7 +2,7 @@
 import json
 from flask import request
 
-from carafe.core import jsonify
+from carafe.utils import jsonify
 
 from .base import TestBase
 

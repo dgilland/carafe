@@ -5,7 +5,7 @@ from flask import request, session
 
 import carafe
 from carafe.ext.classy import register_view, route, BaseView, RestView, to_dict, urlpathjoin
-from carafe.core import auth, cache
+from .core import auth, cache
 
 from .base import TestBase
 from .test_auth import TestAuthBase
