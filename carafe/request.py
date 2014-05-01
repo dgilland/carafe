@@ -1,6 +1,6 @@
 
 from flask import Request as RequestBase
-from werkzeug import cached_property
+from werkzeug.utils import cached_property
 
 class Request(RequestBase):
     '''Subclass of flask.Request with some added features'''

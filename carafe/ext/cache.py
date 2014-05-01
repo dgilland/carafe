@@ -4,7 +4,7 @@ import inspect
 
 from flask import request, current_app
 from werkzeug import urls
-from flask.ext.cache import Cache as CacheBase
+from flask_cache import Cache as CacheBase
 
 
 class Cache(CacheBase):

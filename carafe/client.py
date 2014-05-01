@@ -1,7 +1,8 @@
 
 from flask.testing import FlaskClient
 from flask import json
-from werkzeug import cached_property, urls
+from werkzeug import urls
+from werkzeug.utils import cached_property
 
 
 class JsonResponseMixin(object):

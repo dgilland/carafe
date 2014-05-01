@@ -2,7 +2,7 @@
 from functools import wraps
 
 from flask import request, abort, current_app
-from flask.ext.classy import FlaskView, route
+from flask_classy import FlaskView, route
 
 from .signaler import signaler
 from ..utils import urlpathjoin, _to_dict, camelcase_to_underscore

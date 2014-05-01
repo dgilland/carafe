@@ -19,9 +19,9 @@ class SessionInterface(SecureCookieSessionInterface):
         return session
 
 def init_app(app):
-	app.config.setdefault('CARAFE_SESSION_PERMANENT', True)
-	app.config.setdefault('CARAFE_SESSION_SALT', None)
+    app.config.setdefault('CARAFE_SESSION_PERMANENT', True)
+    app.config.setdefault('CARAFE_SESSION_SALT', None)
 
-	permanent = app.config['CARAFE_SESSION_PERMANENT'] and app.config['PERMANENT_SESSION_LIFETIME'].total_seconds() > 0
+    permanent = app.config['CARAFE_SESSION_PERMANENT'] and app.config['PERMANENT_SESSION_LIFETIME'].total_seconds() > 0
 
-	app.session_interface = SessionInterface(salt=app.config['CARAFE_SESSION_SALT'], permanent=permanent)
+    app.session_interface = SessionInterface(salt=app.config['CARAFE_SESSION_SALT'], permanent=permanent)

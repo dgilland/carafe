@@ -1,7 +1,7 @@
 
 import flask
 from flask import session, current_app
-from flask.ext.principal import (
+from flask_principal import (
     Principal,
     identity_loaded,
     identity_changed,
