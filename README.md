@@ -1,79 +1,12 @@
 # carafe
 
-Flask application factory with extensions geared towards JSON APIs
-
-## Quickstart
-
-Use `carafe` as an application factory:
-
-```python
-import carafe
-
-# make carafe extensions available for import from here
-# these will be initialized with the created app in
-# carafe.create_app()
-from carafe.core import (
-    logger,
-    cache,
-    auth,
-    signaler
-)
-
-def create_app(config=None):
-    # some extensions require/support arguments to their init_app functions
-    # this is how those would be passed in when using carafe.create_app()
-    options = {
-        'auth': {
-            'provider': MyAuthProvider()
-        },
-        'json': {
-            'encoder': MyJSONEncoder
-        }
-    }
-
-    app = carafe.create_app(__name__, config=config, options=options)
-
-    return app
-```
+Custom Flask application with extensions geared towards JSON APIs
 
 ## Extensions
-
-### json
-
-Sets `app.json_encoder` and default app error handler to return JSON response for error messages.
-
-#### init_app()
-
-```python
-opts = {
-    'json': {
-        # default error handler for application exceptions
-        'error_handler': ext.json.json_error_handler,
-        # json encoder to be used when jsonifying
-        'encoder': ext.json.JSONEncoder
-    }
-}
-```
-
-#### Configuration
-
-
-```python
-# enable/disable extension
-CARAFE_JSON_ENABLED = True
-```
 
 ### session
 
 Sets `app.session_interface = ext.session.SessionInterface()` which uses `SecureCookieSession` as session class.
-
-#### init_app()
-
-```python
-opts = {
-    'session': {}
-}
-```
 
 #### Configuration
 
@@ -95,7 +28,9 @@ SECRET_KEY = 'my secret key'
 Generic signal interface to `flask.signals`. Functions mainly as a named signal factory but can also handle string signals. Has no configuration options.
 
 ```python
-from carafe import signaler
+from carafe.ext.signaler import Signaler
+
+signaler = Signaler(app)
 
 # using named signals
 signaler.my_signal.send(**kargs)
@@ -111,25 +46,29 @@ signaler.connect('my_signal', handler, **kargs)
 Extends `flask-cache` to provide `cache.cached_view()` decorator which supports cache invalidation via key prefix modification cascades.
 
 ```python
-from carafe import cache, signaler
+from carafe.ext.cache import Cache
+from carafe.ext.signaler import Signaler
 from flask.ext.classy import FlaskView
+
+cache = Cache(app)
+signaler = Signaler(app)
 
 class MyView(FlaskView):
     cache_cascade = ['MyDependentView']
 
     @cache.cached_view(timeout=3600)
     def index(self):
-        # this route gets cached with key = `MyView:view:{path}`
-        # and includes any request.args used (i.e. `/route/`
-        # and `/route/?foo=bar` have different cache keys)
+        # this route gets cached with key = "MyView:view:{path}"
+        # and includes any request.args used (i.e. "/route/"
+        # and "/route/?foo=bar" have different cache keys)
         return ''
 
     def post(self):
         return ''
 
     def after_post(self):
-        # after post, then signal is sent which tells `cache` to delete
-        # both `MyView` prefixed keys as well as `MyDependentView` prefixed keys
+        # after post, then signal is sent which tells "cache" to delete
+        # both "MyView" prefixed keys as well as "MyDependentView" prefixed keys
         signaler.after_post.send()
 
 class MyDependentView(FlaskView):
@@ -141,18 +80,10 @@ class MyOtherView(FlaskView):
 
     @cache.cached_view(include_request_args=False)
     def index(self):
-        # this route gets cached with key = `my-awesome-namespace:view:{path}`
+        # this route gets cached with key = "my-awesome-namespace:view:{path}"
         # and doesn't include request.args
-        # (i.e. '/route/' and '/route/?foo=bar' have the same cache key)
+        # (i.e. "/route/" and "/route/?foo=bar" have the same cache key)
         return ''
-```
-
-#### init_app()
-
-```python
-opts = {
-    'cache': {}
-}
 ```
 
 #### Configuration
@@ -181,8 +112,8 @@ Uses `flask-principal` for managing/generating permission based access.
 Requires an Identity Provider class instance which exposes identity information. An example `AuthProvider` is defined in `ext.auth.SQLAlchemyAuthProvider`.
 
 ```python
-from carafe import create_app, auth
-from carafe.ext.auth import SQLAlchemyAuthProvider
+from carafe import FlaskCarafe
+from carafe.ext.auth import Auth, SQLAlchemyAuthProvider
 
 # use flask-sqlalchemy for demo purposes
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -208,7 +139,8 @@ MyAuthProvider(SQLAlchemyAuthProvider):
 
 provider = MyAuthProvider(db.session)
 
-app = create_app(__name__, options={'auth': {'provider': provider}})
+app = FlaskCarafe(__name__)
+auth = Auth(app, provider=provider)
 
 @app.route('/login/')
 def login():
@@ -244,14 +176,16 @@ from flask.ext.principal import Permission, RoleNeed
 my_role = Permission(RoleNeed('my_role'))
 
 @my_role.require(401)
-def foo(): return ''
+def foo():
+    return ''
 
 ##
 # is equivalent to
 ##
 
 @auth.require.my_role(401)
-def foo(): return ''
+def foo():
+    return ''
 ```
 
 Essentially, `auth.require` is a role-based permission factory which creates permissions on the fly if they haven't been referenced yet.
@@ -261,11 +195,7 @@ If one just needs to protect against login, `auth.require` exposes the permissio
 #### init_app()
 
 ```python
-opts = {
-    'auth': {
-        'provider': None
-    }
-}
+auth.init_app(app, provider=MyProvider())
 ```
 
 #### Configuration
@@ -335,4 +265,3 @@ CARAFE_LOGGER_SMTP_LEVEL = 'ERROR'
 # additional loggers (referenced by logger name) to attach to
 CARAFE_LOGGER_SMTP_ADD_LOGGERS = []
 ```
-
