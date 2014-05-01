@@ -1,4 +1,4 @@
-.PHONY: build test testall clean release travisci-install travisci-test
+.PHONY: build test testall clean clean-env clean-files release travisci-install travisci-test
 
 ##
 # Variables
@@ -18,6 +18,19 @@ COVERAGE_TARGET = carafe
 
 build: clean install
 
+clean: clean-env clean-files
+
+clean-env:
+	rm -rf $(ENV_NAME)
+
+clean-files:
+	rm -rf .tox
+	rm -rf .coverage
+	find . -name \*.pyc -type f -delete
+	find . -name \*.test.db -type f -delete
+	find . -depth -name __pycache__ -type d -exec rm -rf {} \;
+	rm -rf dist *.egg* build
+
 install:
 	rm -rf $(ENV_NAME)
 	virtualenv $(ENV_NAME) --python=python2.7
@@ -29,13 +42,6 @@ test:
 test-full:
 	rm -rf .tox
 	$(ENV_ACT) tox
-
-clean:
-	rm -rf $(ENV_NAME)
-	rm -rf .tox
-	find . -name \*.pyc -type f -delete
-	find . -name __pycache__ -exec rm -rf {} \;
-	rm -rf dist *.egg* build
 
 release:
 	$(ENV_ACT) python setup.py sdist bdist_wheel
