@@ -33,8 +33,8 @@ clean-files:
 
 install:
 	rm -rf $(ENV_NAME)
-	virtualenv $(ENV_NAME) --python=python2.7
-	$(PIP) install -r requirements.txt --allow-external twill --allow-unverified twill
+	virtualenv $(ENV_NAME)
+	$(PIP) install -r requirements.txt
 
 test:
 	$(ENV_ACT) py.test $(PYTEST_ARGS) $(COVERAGE_ARGS) $(COVERAGE_TARGET) $(PYTEST_TARGET)
