@@ -19,10 +19,9 @@ class Message(object):
         self.fullmessage = fullmessage
 
 class MockSMTP(object):
-    def __init__(self, host, port, timeout):
+    def __init__(self, host, port, *args, **kargs):
         self.host = host
         self.port = port
-        self.timeout = timeout
 
     def login(self,username,password):
         self.username = username
