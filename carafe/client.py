@@ -44,15 +44,14 @@ class JSONClient(Client):
         # all requests will be treated like JSON unless otherwise specified
         kargs.setdefault('content_type', 'application/json')
 
-        # convert kargs['data'] dict to json, otherwise, werkzeug will cast to ImmutableDict
-        # ImmutableDicts are a problem since our API performs updates to incoming data
-        # in normal operation, all dict data is sent as JSON strings which our API then converts to a dict which can be updated
-        if isinstance(kargs.get('data'), dict):
+        if (kargs['content_type'] == 'application/json'
+                and isinstance(kargs.get('data'), dict):
+            # If data is a dict, then assume we want to send a JSON serialized
+            # string in the request.
             try:
                 kargs['data'] = json.dumps(kargs['data'])
             except Exception:
-                # some data may not be serializable (e.g. StringIO for file uploads)
-                # in that case, it's probably ok to not serialize since that data dict won't be updated in the API
+                # Ignore error if data isn't serializable and just send it.
                 pass
 
         return super(JSONClient, self).open(*args, **kargs)
