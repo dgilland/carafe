@@ -45,7 +45,7 @@ class JSONClient(Client):
         kargs.setdefault('content_type', 'application/json')
 
         if (kargs['content_type'] == 'application/json'
-                and isinstance(kargs.get('data'), dict):
+                and isinstance(kargs.get('data'), dict)):
             # If data is a dict, then assume we want to send a JSON serialized
             # string in the request.
             try:
