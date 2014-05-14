@@ -3,7 +3,6 @@ from carafe import FlaskCarafe
 
 from carafe.ext.logger import Logger
 from carafe.ext.cache import Cache
-from carafe.ext.signaler import Signaler
 from carafe.ext.auth import Auth
 
 # extensions for use
@@ -11,7 +10,6 @@ from carafe.ext.auth import Auth
 from carafe.ext import session
 
 
-signaler = Signaler()
 logger = Logger()
-cache = Cache(signaler=signaler)
+cache = Cache()
 auth = Auth()

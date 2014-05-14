@@ -1,5 +1,7 @@
+"""Flask extension of Flask-Principal for handling
+authentication/authorization.
+"""
 
-import flask
 from flask import session, current_app
 from flask_principal import (
     Principal,
@@ -8,18 +10,20 @@ from flask_principal import (
     Identity,
     AnonymousIdentity,
     Permission,
-    UserNeed,
     RoleNeed,
     TypeNeed
 )
 
+
+# pylint: disable=invalid-name
 login_need = TypeNeed('login')
+# pylint: enable=invalid-name
 
 
 class SQLAlchemyAuthProvider(object):
-    '''
-    SQLAlchemy backed UserProvider class which provides identity information for logged in user.
-    '''
+    """SQLAlchemy backed UserProvider class which provides identity information
+    for logged in user.
+    """
 
     # SQLAlchemy model used to query the database for identity information
     __model__ = None
@@ -27,13 +31,13 @@ class SQLAlchemyAuthProvider(object):
     __id_key__ = 'id'
     __roles_key__ = 'roles'
 
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, db_session):
+        self.session = db_session
 
     def identify(self, identity):
-        '''
-        Identify a user via _id to provide information for role based authentication.
-        '''
+        """Identify a user via _id to provide information for role based
+        authentication.
+        """
         ident = {}
 
         user = self.get_user(identity.id)
@@ -46,21 +50,23 @@ class SQLAlchemyAuthProvider(object):
         return ident
 
     ##
-    # Override these methods if they don't return user data correctly based on your models
+    # Override these methods if they don't return user data correctly based on
+    # your models.
     ##
 
     def get_user(self, _id):
-        '''Return user object from database.'''
+        """Return user object from database."""
         if _id is None:
             return None
         return self.session.query(self.__model__).get(_id)
 
     def get_roles(self, user):
-        '''Return a list of `roles` as strings.'''
+        """Return a list of `roles` as strings."""
         return getattr(user, self.__roles_key__, [])
 
 
 class Auth(object):
+    """Auth extension."""
     _extension_name = 'carafe.auth'
 
     def __init__(self, app=None, provider=None):
@@ -72,6 +78,7 @@ class Auth(object):
             self.init_app(app, provider)
 
     def init_app(self, app, provider=None):
+        """Initialize app."""
         app.config.setdefault('CARAFE_AUTH_ENABLED', True)
         app.config.setdefault('CARAFE_AUTH_SESSION_ID_KEY', 'user_id')
         app.config.setdefault('CARAFE_AUTH_IDENTITY_ID_KEY', 'id')
@@ -85,33 +92,39 @@ class Auth(object):
 
         app.extensions[self._extension_name] = {'provider': provider}
 
-        # @note: instead of having principal use it's session loader, we'll use ours
+        # NOTE: Instead of having principal use it's session loader, we'll use
+        # ours.
         self.principal.init_app(app)
         self.principal.identity_loader(self.session_identity_loader)
         identity_loaded.connect_via(app)(self.on_identity_loaded)
 
     @property
     def session_id_key(self):
+        """Property access to config's CARAFE_AUTH_SESSION_ID_KEY."""
         return current_app.config['CARAFE_AUTH_SESSION_ID_KEY']
 
     @property
     def identity_id_key(self):
+        """Property access to config's CARAFE_AUTH_IDENTITY_ID_KEY."""
         return current_app.config['CARAFE_AUTH_IDENTITY_ID_KEY']
 
     @property
     def identity_roles_key(self):
+        """Property access to config's CARAFE_AUTH_IDENTITY_ROLES_KEY."""
         return current_app.config['CARAFE_AUTH_IDENTITY_ROLES_KEY']
 
     @property
     def user_id(self):
+        """Property access to logged in user id."""
         return session.get(self.session_id_key)
 
     @property
     def provider(self):
+        """Property access to auth provider instance."""
         return current_app.extensions[self._extension_name]['provider']
 
     def session_identity_loader(self):
-        '''Fetch user id from session using config's auth id key'''
+        """Fetch user id from session using config's auth id key"""
         if self.session_id_key in session:
             identity = Identity(session[self.session_id_key])
         else:
@@ -119,11 +132,14 @@ class Auth(object):
 
         return identity
 
-    def on_identity_loaded(self, app, identity):
-        '''Called if session_identity_loader() returns an identity (i.e. not None)'''
-        # whatever is returned is used for our identity
-        # potentially, provider may return a different user than original identity
-        # (e.g. app provides way for admin users to access site using a different user account)
+    def on_identity_loaded(self, app, identity):  # pylint: disable=unused-argument
+        """Called if session_identity_loader() returns an identity (i.e. not
+        None).
+        """
+        # Whatever is returned is used for our identity. Potentially, provider
+        # may return a different user than original identity (e.g. app provides
+        # way for admin users to access site using a different user account)
+
         if self.provider:
             ident = self.provider.identify(identity)
         else:
@@ -143,16 +159,24 @@ class Auth(object):
             identity.provides.add(RoleNeed(role))
 
     def send_identity_changed(self, user_id):
-        identity = AnonymousIdentity() if user_id is None else Identity(user_id)
-        identity_changed.send(current_app._get_current_object(), identity=identity)
+        """Send identity changed event."""
+        if user_id is None:
+            identity = AnonymousIdentity()
+        else:
+            identity = Identity(user_id)
+
+        identity_changed.send(
+            current_app._get_current_object(), identity=identity)
 
     def login(self, user_id, propagate=True):
+        """Call after user has been authenticated for login."""
         if session.get(self.session_id_key) != user_id:
             session[self.session_id_key] = user_id
             if propagate:
                 self.send_identity_changed(user_id)
 
     def logout(self, propagate=True):
+        """Call to log user out."""
         if session.get(self.session_id_key):
             del session[self.session_id_key]
             if propagate:
@@ -160,13 +184,18 @@ class Auth(object):
 
 
 class PermissionFactory(object):
+    """General purpose permissions factory which creates RoleNeed permissions
+    from attribute access.
+    """
     def __init__(self):
         self._permissions = {
             'login': Permission(login_need)
         }
 
-    def __getattr__(self, attr):
-        if attr not in self._permissions:
-            self._permissions[attr] = Permission(RoleNeed(attr))
+    def __getattr__(self, role):
+        """Return role permission's require method. If it doesn't exist yet,
+        create it."""
+        if role not in self._permissions:
+            self._permissions[role] = Permission(RoleNeed(role))
 
-        return self._permissions[attr].require
+        return self._permissions[role].require

@@ -1,3 +1,5 @@
+"""Collection of Flask extensions geared towards JSON APIs.
+"""
 
 from .app import FlaskCarafe
 from .client import Client, JSONClient

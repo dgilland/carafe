@@ -1,12 +1,19 @@
 # carafe
 
-Custom Flask application with extensions geared towards JSON APIs
+Collection of Flask extensions geared towards JSON APIs
+
 
 ## Extensions
+
 
 ### session
 
 Sets `app.session_interface = ext.session.SessionInterface()` which uses `SecureCookieSession` as session class.
+
+```python
+from carafe.ext import session
+session.init_app(app)
+```
 
 #### Configuration
 
@@ -23,35 +30,17 @@ SESSION_PERMANENT_LIFETIME = timedelta(days=15000) # or `1296000000`
 SECRET_KEY = 'my secret key'
 ```
 
-### Signaler
-
-Generic signal interface to `flask.signals`. Functions mainly as a named signal factory but can also handle string signals. Has no configuration options.
-
-```python
-from carafe.ext.signaler import Signaler
-
-signaler = Signaler(app)
-
-# using named signals
-signaler.my_signal.send(**kargs)
-signaler.my_signal.connect(handler, **kargs)
-
-# using string signals
-signaler.send('my_signal', **kargs)
-signaler.connect('my_signal', handler, **kargs)
-```
 
 ### Cache
 
 Extends `flask-cache` to provide `cache.cached_view()` decorator which supports cache invalidation via key prefix modification cascades.
 
 ```python
-from carafe.ext.cache import Cache
-from carafe.ext.signaler import Signaler
+from carafe.ext.cache import Cache, after_post
 from flask.ext.classy import FlaskView
 
-cache = Cache(app)
-signaler = Signaler(app)
+cache = Cache()
+cache.init_app(app)
 
 class MyView(FlaskView):
     cache_cascade = ['MyDependentView']
@@ -69,7 +58,7 @@ class MyView(FlaskView):
     def after_post(self):
         # after post, then signal is sent which tells "cache" to delete
         # both "MyView" prefixed keys as well as "MyDependentView" prefixed keys
-        signaler.after_post.send()
+        after_post.send(self)
 
 class MyDependentView(FlaskView):
     def index(self):
@@ -104,6 +93,7 @@ CACHE_REDIS_PORT = 6379
 redis db index (zero-based); defaults to `0`
 CACHE_REDIS_DB = 0
 ```
+
 
 ### Auth
 
@@ -140,7 +130,8 @@ MyAuthProvider(SQLAlchemyAuthProvider):
 provider = MyAuthProvider(db.session)
 
 app = FlaskCarafe(__name__)
-auth = Auth(app, provider=provider)
+auth = Auth(provider=provider)
+auth.init_app(app)
 
 @app.route('/login/')
 def login():
@@ -209,9 +200,16 @@ CARAFE_AUTH_IDENTITY_ID_KEY = 'id'
 CARAFE_AUTH_IDENTITY_ROLES_KEY = 'roles'
 ```
 
+
 ### Logger
 
 Attaches additional loggers to `app.logger`. Provides proxy to `app.logger` via `carafe.logger`.
+
+```python
+from carafe.ext.logger import Logger
+logger = Logger()
+logger.init_app(app)
+```
 
 ### Configuration
 

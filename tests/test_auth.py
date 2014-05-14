@@ -80,10 +80,10 @@ class TestAuthBase(TestBase):
 
 
 class TestAuth(TestAuthBase):
-    '''Test auth extension'''
+    """Test auth extension"""
 
     def test_auth_permission(self):
-        '''Test basic auth permission'''
+        """Test basic auth permission"""
         # test without logging in
         self.assertStatus(self.client.get('/auth'), 401)
 
@@ -101,7 +101,7 @@ class TestAuth(TestAuthBase):
         self.assertStatus(self.client.get('/auth'), 401)
 
     def test_general_permission(self):
-        '''Test general permissions'''
+        """Test general permissions"""
         @self.app.route('/admin')
         @auth.require.admin(403)
         def admin():
@@ -132,7 +132,7 @@ class TestAuth(TestAuthBase):
         self.assertStatus(self.client.get('/general'), 401)
 
     def test_user_invalidated_offline(self):
-        '''Test that user is logged out if their account is removed offline'''
+        """Test that user is logged out if their account is removed offline"""
         orig_user = Session.Storage.users[self.regular_user_id]
 
         self.login(self.regular_user_id)
@@ -145,6 +145,7 @@ class TestAuth(TestAuthBase):
 
         Session.Storage.users[self.regular_user_id] = orig_user
 
+
 class TestAuthProviderMissing(TestAuthBase):
 
     def create_app(self):
@@ -156,8 +157,7 @@ class TestAuthProviderMissing(TestAuthBase):
         return app
 
     def test_missing_provider(self):
-        '''Test that not setting a provider causes identity to not load'''
+        """Test that not setting a provider causes identity to not load"""
         self.client.post('/session', {'user_id': self.regular_user_id})
         self.assertEqual(self.client.get('/session').json['user_id'], self.regular_user_id)
         self.assertStatus(self.client.get('/auth'), 401)
-

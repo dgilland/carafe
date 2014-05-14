@@ -1,22 +1,23 @@
+"""Extension of flask.Request.
+"""
 
 from flask import Request as RequestBase
-from werkzeug.utils import cached_property
+
 
 class Request(RequestBase):
-    '''Subclass of flask.Request with some added features'''
+    """Subclass of flask.Request with some added features"""
 
     @property
     def data(self):
+        """Property access to get_dict()."""
         return self.get_dict()
 
     def get_dict(self, force=True, silent=True, cache=True):
-        '''
-        Attempt to return request data as a dict.
-
-        This is similar to `get_json` but is more permissive in trying to return something useful.
-
-        Try to convert from JSON first but then fallback to other extraction methods.
-        '''
+        """Attempt to return request data as a dict. This is similar to
+        `get_json` but is more permissive in trying to return something useful.
+        Try to convert from JSON first but then fallback to other extraction
+        methods.
+        """
         data = getattr(self, '_cached_dict', None)
         if data is not None:
             return data

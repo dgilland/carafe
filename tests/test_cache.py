@@ -6,16 +6,21 @@ from flask.views import MethodView
 
 import carafe
 from carafe.utils import jsonify
-from .core import cache, signaler
+from carafe.ext.cache import after_post, after_put, after_patch, after_delete
+from .core import cache
 
 from .base import TestBase
 
 
 def register_view(app, view, endpoint, url, pk='_id', pk_type='int'):
     view_func = view.as_view(endpoint)
-    app.add_url_rule(url, defaults={pk: None}, view_func=view_func, methods=['GET',])
-    app.add_url_rule(url, view_func=view_func, methods=['POST',])
-    app.add_url_rule('%s<%s:%s>' % (url, pk_type, pk), view_func=view_func, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+    app.add_url_rule(
+        url, defaults={pk: None}, view_func=view_func, methods=['GET'])
+    app.add_url_rule(url, view_func=view_func, methods=['POST'])
+    app.add_url_rule(
+        '{0}<{1}:{2}>'.format(url, pk_type, pk),
+        view_func=view_func,
+        methods=['GET', 'PUT', 'PATCH', 'DELETE'])
 
 
 class TestCacheBase(TestBase):
@@ -183,13 +188,16 @@ class TestCacheClear(TestCacheBase):
         self.assertTrue(len(self.cache_keys()) > 0)
         count_cache_keys = len(self.cache_keys())
         prefix = 'bar'
-        keys = set([key for key in self.cache_keys() if key.startswith(prefix)])
+        keys = set([key for key in self.cache_keys()
+                    if key.startswith(prefix)])
 
         self.assertEqual(len(keys), 2)
 
         cache.clear(prefixes=[prefix])
 
-        self.assertEqual(len(self.cache_keys()), (count_cache_keys-len(keys)))
+        self.assertEqual(
+            len(self.cache_keys()),
+            (count_cache_keys - len(keys)))
 
         for key in keys:
             self.assertNotIn(key, self.cache_keys())
@@ -203,7 +211,9 @@ class TestCacheClear(TestCacheBase):
 
         cache.clear(keys=keys)
 
-        self.assertEqual(len(self.cache_keys()), (count_cache_keys-len(keys)))
+        self.assertEqual(
+            len(self.cache_keys()),
+            (count_cache_keys - len(keys)))
 
         for key in keys:
             self.assertNotIn(key, self.cache_keys())
@@ -217,13 +227,16 @@ class TestCacheClear(TestCacheBase):
         regex = 'a=a'
         r = re.compile(regex)
 
-        prefix_keys = set([key for key in self.cache_keys() if key.startswith(prefix)])
+        prefix_keys = set([key for key in self.cache_keys()
+                           if key.startswith(prefix)])
 
         self.assertEqual(len(prefix_keys), 2)
 
         cache.clear(prefixes=[prefix], keys=keys)
 
-        self.assertEqual(len(self.cache_keys()), (count_cache_keys-(len(keys)+len(prefix_keys))))
+        self.assertEqual(
+            len(self.cache_keys()),
+            (count_cache_keys - (len(keys) + len(prefix_keys))))
 
         for key in keys | prefix_keys:
             self.assertNotIn(key, self.cache_keys())
@@ -286,19 +299,19 @@ class TestCacheCascade(TestCacheBase):
                 return ''
 
             def post(self):
-                signaler.after_post.send(self)
+                after_post.send(self)
                 return ''
 
             def put(self, _id):
-                signaler.after_put.send(self)
+                after_put.send(self)
                 return ''
 
             def patch(self, _id):
-                signaler.after_patch.send(self)
+                after_patch.send(self)
                 return ''
 
             def delete(self, _id):
-                signaler.after_delete.send(self)
+                after_delete.send(self)
                 return ''
 
         class CascadeView(RestView):
@@ -315,7 +328,8 @@ class TestCacheCascade(TestCacheBase):
         register_view(self.app, CascadeView, 'cascade', '/cascade/')
         register_view(self.app, AnotherRestView, 'another', '/another/')
 
-        # add cache entries for `another` so selective cache cascade is tested (i.e. these keys shouldn't be cleared)
+        # add cache entries for `another` so selective cache cascade is tested
+        # (i.e. these keys shouldn't be cleared)
         self.client.get('/another/')
         self.client.get('/another/1')
 

@@ -2,6 +2,7 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+import smtplib
 
 import carafe
 from carafe.ext.logger import Logger
@@ -9,8 +10,10 @@ from .core import logger, Logger
 
 from .base import TestBase
 
+
 # monkey-patch smtplib so we don't send actual emails
-inbox = {}
+outbox = {}
+
 
 class Message(object):
     def __init__(self, from_address, to_address, fullmessage):
@@ -18,25 +21,27 @@ class Message(object):
         self.to_address = to_address
         self.fullmessage = fullmessage
 
+
 class MockSMTP(object):
     def __init__(self, host, port, *args, **kargs):
         self.host = host
         self.port = port
 
-    def login(self,username,password):
+    def login(self, username, password):
         self.username = username
         self.password = password
 
     def sendmail(self, from_address, to_address, fullmessage):
-        inbox.setdefault(self.username, [])
-        inbox[self.username].append(Message(from_address, to_address, fullmessage))
+        outbox.setdefault(self.username, [])
+        outbox[self.username].append(Message(from_address, to_address, fullmessage))
         return []
 
     def quit(self):
         self.has_quit = True
 
-import smtplib
+
 smtplib.SMTP = MockSMTP
+
 
 class TestLoggerBase(TestBase):
     @property
@@ -49,19 +54,20 @@ class TestLoggerBase(TestBase):
 
         return lines
 
-    def inbox(self, username=None):
+    def outbox(self, username=None):
         if username:
-            return inbox.get(username)
+            return outbox.get(username)
         else:
-            return inbox.get(self.__config__.CARAFE_LOGGER_SMTP_USERNAME)
+            return outbox.get(self.__config__.CARAFE_LOGGER_SMTP_USERNAME)
 
     def tearDown(self):
         if self.log_file:
             # delete log file
             os.system('rm {0}'.format(self.log_file))
 
-        # reset inbox
-        inbox.clear()
+        # reset outbox
+        outbox.clear()
+
 
 class TestRotatingFileLogger(TestLoggerBase):
     class __config__(object):
@@ -69,7 +75,7 @@ class TestRotatingFileLogger(TestLoggerBase):
         CARAFE_LOGGER_RFILE_FILENAME = '_test_logger.log'
 
     def test_default_level(self):
-        '''Test that default logging level is WARNING'''
+        """Test that default logging level is WARNING"""
 
         info_msg = 'info not logged'
         warn_msg = 'warning logged'
@@ -86,6 +92,7 @@ class TestRotatingFileLogger(TestLoggerBase):
         self.assertEqual(len(lines), 1)
         self.assertIn(warn_msg, lines[0])
 
+
 class TestSMTPLogger(TestLoggerBase):
     class __config__(object):
         CARAFE_LOGGER_SMTP_ENABLED = True
@@ -98,10 +105,11 @@ class TestSMTPLogger(TestLoggerBase):
         CARAFE_LOGGER_SMTP_USE_TLS = False
 
     def test_default_level(self):
-        '''Test that default logging level is ERROR'''
+        """Test that default logging level is ERROR"""
 
         warn_msg = 'warning not logged'
         err_msg = 'error logged'
+
         @self.app.route('/log')
         def log():
             logger.warning(warn_msg)
@@ -110,14 +118,22 @@ class TestSMTPLogger(TestLoggerBase):
 
         self.client.get('/log')
 
-        messages = self.inbox()
+        messages = self.outbox()
         self.assertEqual(len(messages), 1)
 
         msg = messages[0]
-        self.assertEqual(msg.from_address, self.__config__.CARAFE_LOGGER_SMTP_FROMADDR)
-        self.assertEqual(msg.to_address, str(self.__config__.CARAFE_LOGGER_SMTP_TOADDRS).replace(' ', '').split(','))
+        self.assertEqual(
+            msg.from_address,
+            self.__config__.CARAFE_LOGGER_SMTP_FROMADDR)
+
+        self.assertEqual(
+            msg.to_address,
+            (str(self.__config__.CARAFE_LOGGER_SMTP_TOADDRS)
+             .replace(' ', '').split(',')))
+
         self.assertIn(err_msg, msg.fullmessage)
         self.assertNotIn(warn_msg, msg.fullmessage)
+
 
 class TestAdditionalLoggers(TestLoggerBase):
     class __config__(object):
@@ -160,7 +176,7 @@ class TestAdditionalLoggers(TestLoggerBase):
             c.get('/')
 
         self.assertEqual(len(self.get_log_lines()), 0)
-        self.assertIsNone(self.inbox())
+        self.assertIsNone(self.outbox())
 
         # now create an app with additional logger
         loggerapp = self.create_app(loggerconfig)
@@ -178,5 +194,4 @@ class TestAdditionalLoggers(TestLoggerBase):
         self.assertEqual(len(lines), 1)
         self.assertIn(warn_msg, lines[0])
 
-        self.assertEqual(len(self.inbox()), 1)
-
+        self.assertEqual(len(self.outbox()), 1)

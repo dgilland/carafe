@@ -7,6 +7,7 @@ from flask.sessions import SecureCookieSession
 import carafe
 from carafe.ext.session import SessionInterface
 
+
 class TestSession(TestBase):
     class __config__(object):
         CARAFE_SESSION_PERMANENT = True
@@ -26,12 +27,19 @@ class TestSession(TestBase):
             session['bar'] = True
             return session
 
-        self.assertEqual(self.client.get('/foo').json, {'foo': True, '_permanent': True})
-        self.assertEqual(self.client.get('/bar').json, {'bar': True, 'foo': True, '_permanent': True})
-        self.assertEqual(self.client.get('/foo').json, {'bar': True, 'foo': True, '_permanent': True})
+        self.assertEqual(
+            self.client.get('/foo').json,
+            {'foo': True, '_permanent': True})
+        self.assertEqual(
+            self.client.get('/bar').json,
+            {'bar': True, 'foo': True, '_permanent': True})
+        self.assertEqual(
+            self.client.get('/foo').json,
+            {'bar': True, 'foo': True, '_permanent': True})
 
     def test_session_interface_enabled(self):
         self.assertIsInstance(self.app.session_interface, SessionInterface)
+
 
 class TestSessionDisabled(TestBase):
     class __config__(object):

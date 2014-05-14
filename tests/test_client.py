@@ -44,10 +44,10 @@ class TestJSONClient(TestClientBase):
     data = {'x': 1, 'y': 2}
 
     def test_dict_to_json_conversion(self):
-        '''Test that client accepts dict object for data attribute'''
+        """Test that client accepts dict object for data attribute"""
         self.assertEqual(self.client.post('/', self.data).json['data'], self.data)
 
     def test_invalid_conversion(self):
-        '''Test that invalid data is not converted'''
+        """Test that invalid data is not converted"""
         invalid = {'x': object(), 'y': 2}
         self.assertEqual(self.client.post('/', invalid).json['data'], {})

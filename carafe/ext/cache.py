@@ -1,22 +1,50 @@
+"""Flask extension of Flask-Cache.
+"""
 
 from functools import wraps
-import inspect
 
 from flask import request, current_app
+from flask.signals import Namespace
 from werkzeug import urls
 from flask_cache import Cache as CacheBase
 
 
+# pylint: disable=invalid-name
+
+
+signals = Namespace()
+
+
+# Signals for dealing with cache invalidation after REST methods.
+after_post = signals.signal('after_post', doc="""
+Signal which should be sent after a POST operation.
+""")
+
+
+after_put = signals.signal('after_put', doc="""
+Signal which should be sent after a PUT operation.
+""")
+
+
+after_patch = signals.signal('after_patch', doc="""
+Signal which should be sent after a PATCH operation.
+""")
+
+
+after_delete = signals.signal('after_delete', doc="""
+Signal which should be sent after a DELETE operation.
+""")
+
+
+# pylint: enable=invalid-name
+
+
 class Cache(CacheBase):
-    '''
-    Manager class for handling creating and deleting cache keys based on API view events
-    '''
+    """Manager class for handling creating and deleting cache keys based o
+    view events.
+    """
 
     view_key_format = '{namespace}:view:{path}'
-
-    def __init__(self, app=None, with_jinja2_ext=True, config=None, signaler=None):
-        self.signaler = signaler
-        super(Cache, self).__init__(app=app, with_jinja2_ext=with_jinja2_ext, config=config)
 
     def init_app(self, app, config=None):
         if config is None:
@@ -30,22 +58,17 @@ class Cache(CacheBase):
 
         super(Cache, self).init_app(app, config=config)
 
-        if self.signaler:
-            self.connect_signals()
+        self.connect_signals()
 
     def connect_signals(self):
-        # @note: have to keep a handle on the signal for the receive event to work (not sure why exactly)
-        # not ok: self.signaler.<signal>.connect(self.<method>)
-        # ok: self.<signal_name> = self.signaler.<signal>
-        #     self.<signal_name>.connect(self.<method>)
-
-        # connect receivers
-        self.signaler.after_post.connect(self.after_post)
-        self.signaler.after_put.connect(self.after_put)
-        self.signaler.after_patch.connect(self.after_patch)
-        self.signaler.after_delete.connect(self.after_delete)
+        """Connect supported signals to handlers."""
+        after_post.connect(self.on_after_post)
+        after_put.connect(self.on_after_put)
+        after_patch.connect(self.on_after_patch)
+        after_delete.connect(self.on_after_delete)
 
     def get_cache_namespace(self, obj):
+        """Determine object's cache namespace."""
         if getattr(obj, 'cache_namespace', None) is not None:
             return obj.cache_namespace
         elif hasattr(obj, '__name__'):
@@ -55,20 +78,21 @@ class Cache(CacheBase):
 
     @property
     def client(self):
-        '''Proxy to cache client wrapper.'''
+        """Proxy to cache client wrapper."""
         return self.cache if self.enabled else None
 
     @property
     def server(self):
-        '''Proxy to cache server client.'''
+        """Proxy to cache server client."""
         return getattr(self.cache, '_client', None) if self.enabled else None
 
     @property
     def enabled(self):
+        """Property access to config's CARAFE_CACHE_ENABLED."""
         return current_app.config['CARAFE_CACHE_ENABLED']
 
     def clear_keys(self, pipe, *keys, **kargs):
-        '''Clear specified keys'''
+        """Clear specified keys"""
         if not keys:
             return
 
@@ -83,7 +107,7 @@ class Cache(CacheBase):
         return True
 
     def clear_prefix(self, pipe, *prefixes, **kargs):
-        '''Clear keys starting with prefix'''
+        """Clear keys starting with prefix"""
         keys = []
         for prefix in prefixes:
             keys.extend(pipe.keys(prefix + '*'))
@@ -91,13 +115,9 @@ class Cache(CacheBase):
         return self.clear_keys(pipe, *keys, **kargs)
 
     def clear(self, prefixes=None, keys=None):
-        '''
-        Clear cache keys using an optional prefix, regex, and/or list of keys
-
-        :param string prefix: prefix to append to global CACHE_KEY_PREFIX
-        :param string regex: regex to filter keys matched by CACHE_KEY_PREFIX + prefix
-        :param list keys: additional keys to delete during pipeline transaction
-        '''
+        """Clear cache keys using an optional prefix, regex, and/or list of
+        keys.
+        """
         if not self.enabled:
             return
 
@@ -122,40 +142,52 @@ class Cache(CacheBase):
 
         return True
 
-    def cached_view(self, timeout=None, namespace=None, unless=None, include_request_args=True):
-        '''
-        Wrapper around self.cached which itself is a decorator.
-        We're wrapping because we want to have access to the class instance of the view in order to namespace the key.
-        We can't always namespace using key_prefix since some cache decorators are placed around parent classes which
-        don't know anything about the child class.
-        '''
+    def cached_view(self,
+                    timeout=None,
+                    namespace=None,
+                    unless=None,
+                    include_request_args=True):
+        """Wrapper around self.cached which itself is a decorator. We're
+        wrapping because we want to have access to the class instance of the
+        view in order to namespace the key. We can't always namespace using
+        key_prefix since some cache decorators are placed around parent classes
+        which don't know anything about the child class.
+        """
 
-        def wrap(f):
-            @wraps(f)
+        # pylint: disable=missing-docstring
+        def wrap(func):
+            @wraps(func)
             def wrapper(*args, **kargs):
                 if not self.enabled:
-                    return f(*args, **kargs)
+                    return func(*args, **kargs)
 
                 if namespace is not None:
-                    # make namespace available in case `f` is used as signal sender
-                    # mainly used to get namespace when invalidating cache keys via namespace prefix
-                    f.cache_namespace = namespace
+                    # Make namespace available in case `f` is used as signal
+                    # sender. Mainly used to get namespace when invalidating
+                    # cache keys via namespace prefix.
+                    func.cache_namespace = namespace
 
-                # if args[0] is set, then this is a class based view, else use function
-                obj = args[0] if args else f
+                # If args[0] is set, then this is a class based view, else use
+                # function.
+                obj = args[0] if args else func
                 cache_namespace = self.get_cache_namespace(obj)
                 view_path = self.create_view_path(include_request_args)
-                key_prefix = self.view_key_format.format(namespace=cache_namespace, path=view_path, **request.view_args)
+                key_prefix = self.view_key_format.format(
+                    namespace=cache_namespace,
+                    path=view_path,
+                    **request.view_args)
 
-                cached = self.cached(timeout=timeout, key_prefix=key_prefix, unless=unless)(f)
+                cached = self.cached(timeout=timeout,
+                                     key_prefix=key_prefix,
+                                     unless=unless)(func)
 
                 try:
-                    # cache server could be down
+                    # Cache server could be down.
                     result = cached(*args, **kargs)
-                except Exception as e: # pragma: no cover
-                    # return function call instead
-                    result = f(*args, **kargs)
-                    current_app.logger.exception(e)
+                except Exception as ex:  # pragma: no cover
+                    # Return function call instead.
+                    current_app.logger.exception(ex)
+                    result = func(*args, **kargs)
 
                 return result
 
@@ -164,42 +196,46 @@ class Cache(CacheBase):
         return wrap
 
     def create_view_path(self, include_request_args=False):
-        '''Construct view path from request.path with option to include GET args'''
+        """Construct view path from request.path with option to include GET
+        args.
+        """
         href = urls.Href(request.path)
 
         if include_request_args:
-            args = {k:v for k, v in request.args.iteritems() if k not in current_app.config['CARAFE_CACHE_IGNORED_REQUEST_ARGS']}
+            ignored = current_app.config['CARAFE_CACHE_IGNORED_REQUEST_ARGS']
+            args = dict((k, v) for k, v in request.args.iteritems()
+                        if k not in ignored)
         else:
             args = None
 
         return href(args)
 
     def on_modified_record(self, sender):
-        '''Common tasks to perform when a record is modified'''
+        """Common tasks to perform when a record is modified."""
         namespace = self.get_cache_namespace(sender)
         prefixes = [self.view_key_format.format(namespace=namespace, path='')]
 
-        # append cascade keys which should be invalidated (typically due to this API's records being used in other APIs)
+        # Append cascade keys which should be invalidated (typically due to
+        # this API's data being used in other APIs).
         prefixes += getattr(sender, 'cache_cascade', [])
 
         try:
             self.clear(prefixes=prefixes)
-        except Exception as e: # pragma: no cover
-            current_app.logger.exception(e)
+        except Exception as ex:  # pragma: no cover
+            current_app.logger.exception(ex)
 
-    def after_post(self, sender):
-        '''Handle the `after_post` event. Executed after a ModelAPI POST request.'''
+    def on_after_post(self, sender):
+        """Handle the `after_post` event. Executed after a POST request."""
         self.on_modified_record(sender)
 
-    def after_put(self, sender):
-        '''Handle the `after_put` event. Executed after a ModelAPI PUT request.'''
+    def on_after_put(self, sender):
+        """Handle the `after_put` event. Executed after a PUT request."""
         self.on_modified_record(sender)
 
-    def after_patch(self, sender):
-        '''Handle the `after_patch` event. Executed after a ModelAPI PATCH request.'''
+    def on_after_patch(self, sender):
+        """Handle the `after_patch` event. Executed after a PATCH request."""
         self.on_modified_record(sender)
 
-    def after_delete(self, sender):
-        '''Handle the `after_delete` event. Executed after a ModelAPI DELETE request.'''
+    def on_after_delete(self, sender):
+        """Handle the `after_delete` event. Executed after a DELETE request."""
         self.on_modified_record(sender)
-

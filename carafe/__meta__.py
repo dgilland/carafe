@@ -1,5 +1,5 @@
-'''Define project metadata
-'''
+"""Define project metadata
+"""
 
 __all__ = [
     '__title__',
@@ -12,10 +12,10 @@ __all__ = [
 ]
 
 __title__ = 'carafe'
-__summary__ = 'Flask application factory with extensions geared towards JSON APIs'
+__summary__ = 'Collection of Flask extensions geared towards JSON APIs'
 __url__ = 'https://github.com/dgilland/carafe'
 
-__version__ = '0.3.1'
+__version__ = '0.4.0'
 
 __author__ = 'Derrick Gilland'
 __email__ = 'dgilland@gmail.com'

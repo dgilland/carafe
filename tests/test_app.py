@@ -1,4 +1,5 @@
 
+from flask import Response
 from carafe.app import FlaskCarafe
 
 from .base import TestBase
@@ -101,7 +102,6 @@ class TestApp(TestBase):
         self.assertRaises(ValueError, self.client.get, '/')
 
     def test_return_force_type(self):
-        from flask import Response
         @self.app.route('/')
         def index():
             return Response(self.content)
@@ -110,4 +110,3 @@ class TestApp(TestBase):
 
         self.assertStatus(res, 200)
         self.assertEqual(res.data, self.content)
-
