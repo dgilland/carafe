@@ -28,7 +28,6 @@ setup(
     install_requires=[
         'Flask>=0.10.1',
         'Flask-Cache>=0.12',
-        'Flask-Classy>=0.6.10',
         'Flask-Principal>=0.4.0',
         'Flask-Testing>=0.4',
         'blinker>=1.3',
