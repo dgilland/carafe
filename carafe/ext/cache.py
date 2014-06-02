@@ -91,28 +91,31 @@ class Cache(CacheBase):
         """Property access to config's CARAFE_CACHE_ENABLED."""
         return current_app.config['CARAFE_CACHE_ENABLED']
 
-    def clear_keys(self, pipe, *keys, **kargs):
+    @property
+    def cache_key_prefix(self):
+        return current_app.config['CACHE_KEY_PREFIX']
+
+    def clear_keys(self, *keys):
         """Clear specified keys"""
-        if not keys:
+        if not keys:  # pragma: no cover
             return
 
-        execute = kargs.get('execute')
+        keys = [self.cache_key_prefix + k for k in keys]
+        self.server.delete(*keys)
 
-        keys = [current_app.config['CACHE_KEY_PREFIX'] + k for k in keys]
-        pipe.delete(*keys)
-
-        if execute:
-            pipe.execute()
-
-        return True
-
-    def clear_prefix(self, pipe, *prefixes, **kargs):
+    def clear_prefixes(self, *prefixes):
         """Clear keys starting with prefix"""
+        if not prefixes:  # pragma: no cover
+            return
+
+        def search_prefix(prefix):
+            return '{0}{1}*'.format(self.cache_key_prefix, prefix)
+
         keys = []
         for prefix in prefixes:
-            keys.extend(pipe.keys(prefix + '*'))
+            keys += self.server.keys(search_prefix(prefix))
 
-        return self.clear_keys(pipe, *keys, **kargs)
+        self.server.delete(*keys)
 
     def clear(self, prefixes=None, keys=None):
         """Clear cache keys using an optional prefix, regex, and/or list of
@@ -129,18 +132,11 @@ class Cache(CacheBase):
             # enhanced cache clearing is only supported using redis
             return self.cache.clear()
 
-        if prefixes is None:
-            prefixes = []
+        if prefixes:
+            self.clear_prefixes(*prefixes)
 
-        if keys is None:
-            keys = []
-
-        with self.server.pipeline() as pipe:
-            self.clear_prefix(pipe, *prefixes)
-            self.clear_keys(pipe, *keys)
-            pipe.execute()
-
-        return True
+        if keys:
+            self.clear_keys(*keys)
 
     def cached_view(self,
                     timeout=None,

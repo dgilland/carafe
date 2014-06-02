@@ -12,6 +12,38 @@ from .core import cache
 from .base import TestBase
 
 
+# need to mock a cache server similar to redis to fully test cache clearing functionality
+class MockCacheServer(object):
+    def __init__(self):
+        self._cache = cache.client._cache
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kargs):
+        pass
+
+    def keys(self, search=None):
+        if search:
+            # replace '*' search with re equivalent
+            search = re.sub('\*', '.+', search)
+            r = re.compile(search)
+            return [k for k in self._cache.keys() if r.match(k)]
+        else:
+            return self._cache.keys()
+
+    def delete(self, *keys):
+        for k in keys:
+            if k in self._cache.keys():
+                del self._cache[k]
+
+    def execute(self):
+        pass
+
+    def pipeline(self):
+        return MockCacheServer()
+
+
 def register_view(app, view, endpoint, url, pk='_id', pk_type='int'):
     view_func = view.as_view(endpoint)
     app.add_url_rule(
@@ -29,39 +61,6 @@ class TestCacheBase(TestBase):
         CACHE_KEY_PREFIX = ''
 
     __client_class__ = carafe.JSONClient
-
-    # need to mock a cache server similar to redis to fully test cache clearing functionality
-    class MockCacheServer(object):
-        class MockPipeline(object):
-            def __init__(self, cache):
-                self._cache = cache
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, *args, **kargs):
-                pass
-
-            def keys(self, search=None):
-                if search:
-                    # replace '*' search with re equivalent
-                    search = re.sub('\*', '.+', search)
-                    r = re.compile(search)
-                    return [k for k in self._cache.keys() if r.match(k)]
-                else:
-                    return self._cache.keys()
-
-            def delete(self, *keys):
-                for k in keys:
-                    if k in self._cache.keys():
-                        del self._cache[k]
-
-            def execute(self):
-                pass
-
-        def pipeline(self):
-            self._cache = cache.client._cache
-            return self.MockPipeline(self._cache)
 
     def setUp(self):
         @self.app.route('/')
@@ -156,7 +155,7 @@ class TestCache(TestCacheBase):
 class TestCacheClear(TestCacheBase):
 
     def setUp(self):
-        cache.cache._client = self.MockCacheServer()
+        cache.cache._client = MockCacheServer()
 
         @self.app.route('/foo')
         @cache.cached_view(namespace='foo')
@@ -278,13 +277,13 @@ class TestCacheClear(TestCacheBase):
         count = len(self.cache_keys())
         self.assertTrue(count > 0)
         key = self.cache_keys()[0]
-        cache.clear_keys(cache.server.pipeline(), key, execute=True)
+        cache.clear_keys(key)
         self.assertNotIn(key, self.cache_keys())
 
 
 class TestCacheCascade(TestCacheBase):
     def setUp(self):
-        cache.cache._client = self.MockCacheServer()
+        cache.cache._client = MockCacheServer()
 
         class RestView(MethodView):
             tracker = {}
