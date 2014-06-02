@@ -4,7 +4,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 import smtplib
 
-import carafe
 from carafe.ext.logger import Logger
 from .core import logger, Logger
 
