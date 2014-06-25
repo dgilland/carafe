@@ -32,8 +32,10 @@ def init_app(app):
     if not app.config['CARAFE_SESSION_ENABLED']:
         return
 
-    permanent = (app.config['PERMANENT_SESSION_LIFETIME'].total_seconds() > 0
-                 and app.config['CARAFE_SESSION_PERMANENT'])
+    total_seconds = (app.config['PERMANENT_SESSION_LIFETIME'].seconds +
+                     app.config['PERMANENT_SESSION_LIFETIME'].days * 24 * 3600)
+
+    permanent = (total_seconds > 0 and app.config['CARAFE_SESSION_PERMANENT'])
 
     app.session_interface = SessionInterface(
         salt=app.config['CARAFE_SESSION_SALT'], permanent=permanent)
