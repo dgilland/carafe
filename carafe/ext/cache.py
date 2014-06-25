@@ -115,7 +115,8 @@ class Cache(CacheBase):
         for prefix in prefixes:
             keys += self.server.keys(search_prefix(prefix))
 
-        self.server.delete(*keys)
+        if keys:
+            self.server.delete(*keys)
 
     def clear(self, prefixes=None, keys=None):
         """Clear cache keys using an optional prefix, regex, and/or list of
