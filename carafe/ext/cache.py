@@ -199,7 +199,7 @@ class Cache(CacheBase):
 
         if include_request_args:
             ignored = current_app.config['CARAFE_CACHE_IGNORED_REQUEST_ARGS']
-            args = dict((k, v) for k, v in request.args.iteritems()
+            args = dict((k, v) for k, v in request.args.lists()
                         if k not in ignored)
         else:
             args = None
