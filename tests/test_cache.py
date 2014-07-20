@@ -131,6 +131,43 @@ class TestCache(TestCacheBase):
         self.assertIn('index:view:/', cache_keys)
         self.assertIn('mynamespace:view:/custom', cache_keys)
 
+    def test_cached_view_class_cache_namespace(self):
+        class MyView(MethodView):
+            cache_namespace = 'mynamespace'
+            @cache.cached_view()
+            def get(self, _id):
+                return ''
+
+        register_view(self.app, MyView, 'my_view', '/myview/')
+
+        self.assertEqual(len(self.cache_keys()), 0)
+
+        self.client.get('/myview/')
+
+        cache_keys = self.cache_keys()
+
+        self.assertIn('mynamespace:view:/myview/', cache_keys)
+
+    def test_cached_view_class_cache_namespace_callable(self):
+        class MyView(MethodView):
+            @property
+            def cache_namespace(self):
+                return 'mynamespace'
+
+            @cache.cached_view()
+            def get(self, _id):
+                return ''
+
+        register_view(self.app, MyView, 'my_view', '/myview/')
+
+        self.assertEqual(len(self.cache_keys()), 0)
+
+        self.client.get('/myview/')
+
+        cache_keys = self.cache_keys()
+
+        self.assertIn('mynamespace:view:/myview/', cache_keys)
+
     def test_cached_view_include_request_args(self):
         @self.app.route('/noviewargs')
         @cache.cached_view(include_request_args=False)

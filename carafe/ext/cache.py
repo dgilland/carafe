@@ -70,7 +70,8 @@ class Cache(CacheBase):
     def get_cache_namespace(self, obj):
         """Determine object's cache namespace."""
         if getattr(obj, 'cache_namespace', None) is not None:
-            return obj.cache_namespace
+            return (obj.cache_namespace if not callable(obj.cache_namespace)
+                    else obj.cache_namespace())
         elif hasattr(obj, '__name__'):
             return obj.__name__
         else:
