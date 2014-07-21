@@ -150,7 +150,6 @@ class TestCache(TestCacheBase):
 
     def test_cached_view_class_cache_namespace_callable(self):
         class MyView(MethodView):
-            @property
             def cache_namespace(self):
                 return 'mynamespace'
 
