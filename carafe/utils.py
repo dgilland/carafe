@@ -27,7 +27,7 @@ def iterflatten(items):
     """
     for item in items:
         if isinstance(item, (list, tuple)):
-            for subitem in flatten(item):
+            for subitem in iterflatten(item):
                 yield subitem
         else:
             yield item
