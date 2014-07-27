@@ -15,7 +15,7 @@ __title__ = 'carafe'
 __summary__ = 'Collection of Flask extensions geared towards JSON APIs'
 __url__ = 'https://github.com/dgilland/carafe'
 
-__version__ = '0.4.3'
+__version__ = '0.4.4'
 
 __author__ = 'Derrick Gilland'
 __email__ = 'dgilland@gmail.com'
