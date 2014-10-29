@@ -103,6 +103,7 @@ class EnvironDataMixin(object):
         """Return copy of request data for debugging purposes."""
         environ = request.environ.copy()
         environ.update({
+            'REQUEST_BODY': request.get_data(),
             'REQUEST_DATA': request.data,
             'REQUEST_JSON': request.get_json(silent=True),
             'REQUEST_FORM': request.form.to_dict(),
