@@ -24,7 +24,10 @@ setup(
     author_email=meta['__email__'],
     description=meta['__summary__'],
     long_description=__doc__,
-    packages=find_packages(exclude=['*.tests', '*.tests.*', 'tests.*', 'tests']),
+    packages=find_packages(exclude=['*.tests',
+                                    '*.tests.*',
+                                    'tests.*',
+                                    'tests']),
     install_requires=[
         'Flask>=0.10.1',
         'Flask-Cache>=0.12',
