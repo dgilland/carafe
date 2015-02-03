@@ -126,19 +126,25 @@ class Cache(CacheBase):
         if not self.enabled:
             return
 
-        if not any([prefixes, keys]):
+        if not any([prefixes, keys]) or not hasattr(self.server, 'pipeline'):
             # this is the same as clearing the entire cache
-            return self.cache.clear()
-
-        if not hasattr(self.server, 'pipeline'):
-            # enhanced cache clearing is only supported using redis
-            return self.cache.clear()
+            try:
+                self.cache.clear()
+            except Exception as ex:  # pragma: no cover
+                current_app.logger.exception(ex)
+            return
 
         if prefixes:
-            self.clear_prefixes(*prefixes)
+            try:
+                self.clear_prefixes(*prefixes)
+            except Exception as ex:  # pragma: no cover
+                current_app.logger.exception(ex)
 
         if keys:
-            self.clear_keys(*keys)
+            try:
+                self.clear_keys(*keys)
+            except Exception as ex:  # pragma: no cover
+                current_app.logger.exception(ex)
 
     def cached_view(self,
                     timeout=None,
