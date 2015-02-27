@@ -25,7 +25,11 @@ class Response(ResponseBase):
 def to_json(content):
     """Converts content to json while respecting config options."""
     indent = None
+    separators = (',', ':')
+
     if (current_app.config['JSONIFY_PRETTYPRINT_REGULAR']
             and not request.is_xhr):
         indent = 2
-    return json.dumps(content, indent=indent)
+        separators = (', ', ': ')
+
+    return (json.dumps(content, indent=indent, separators=separators), '\n')
